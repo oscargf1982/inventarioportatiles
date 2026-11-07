@@ -3149,8 +3149,9 @@ var qrcode = function() {
   $("#inc-copy").addEventListener("click",async()=>{
     const ab=incidencias.filter(i=>i.estado!=="resuelta");
     if(!ab.length){ $("#inc-msg").innerHTML='<div class="msg ok">No hay incidencias abiertas.</div>'; return; }
-    const txt="Incidencias abiertas · CEIP Plurilingüe de Monforte de Lemos ("+fmt(today())+")\n\n"+
-      ab.map((i,n)=>`${n+1}. Nº de serie: ${i.serie}\n   Marca: ${i.marca||"—"} · Modelo: ${i.modelo||"—"}\n   Incidencia: ${i.descripcion}\n   Desde: ${fmt(i.fecha)}`).join("\n\n");
+    const txt="Buenos días, soy Oscar González, coordinador EDIXGAL del CEIP Plurilingüe de Monforte (27016662). Envío listado de incidencias en equipos EDIXGAL:\n\n"+
+      ab.map((i,n)=>{ const e=equipos.find(x=>x._id===i.equipoId); return `${n+1}. Marca y modelo: ${(e&&mm(e))||[i.marca,i.modelo].filter(Boolean).join(" ")||"sin indicar"}\n   Nº de serie: ${(e&&e.serie)||i.serie}\n   Observaciones: ${i.descripcion} (desde el ${fmt(i.fecha)})`; }).join("\n\n")+
+      "\n\nUn saludo.";
     try{ await navigator.clipboard.writeText(txt); $("#inc-msg").innerHTML='<div class="msg ok">Copiado. Pégalo en un correo para EDIXGAL o el servicio técnico.</div>'; }
     catch(_){ $("#inc-msg").innerHTML='<textarea readonly style="width:100%;min-height:140px">'+esc(txt)+'</textarea><div class="small muted">Selecciona el texto y cópialo.</div>'; }
   });
