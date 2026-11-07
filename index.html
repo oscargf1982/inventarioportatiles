@@ -3175,7 +3175,7 @@ var qrcode = function() {
     const clase=claseDe(e);
     const linea1=[clase!=="Portátil"?clase:"", mm(e)].filter(Boolean).join(" · ") || clase;
     const l1=doc.splitTextToSize(pdfTxt(linea1), w).slice(0,2); doc.text(l1, tx, ty); ty+=l1.length*2.9;
-    const extra=[e.color?"Color: "+e.color:"", e.asignado?"Asignado: "+e.asignado:""].filter(Boolean).join(" · ");
+    const extra=e.color?"Color: "+e.color:"";
     if(extra){ doc.setFontSize(6.4); const l2=doc.splitTextToSize(pdfTxt(extra), w).slice(0,2); doc.text(l2, tx, ty); ty+=l2.length*2.6; }
     doc.setFontSize(5.8); doc.setTextColor(138,134,152);
     doc.text(["Escanea para registrar","a dónde va este dispositivo"].map(pdfTxt), tx, Math.max(ty+0.6, y+31.2));
