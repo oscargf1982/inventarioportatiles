@@ -147,6 +147,17 @@ tbody tr.row.sel td{background:var(--mint-soft)}
 .qrbox .qr{background:#fff;padding:6px;border-radius:6px;line-height:0;flex:none}
 .qrbox .qr img{width:120px;height:120px;image-rendering:pixelated}
 .qrbox{align-items:flex-start;flex-wrap:wrap}
+.selbar{display:flex;flex-direction:column;gap:8px;background:var(--mint-soft);border:1px solid var(--mint);border-radius:10px;padding:12px}
+.selbar select{width:auto;flex:1;min-width:170px}
+.selbox{width:18px;height:18px;margin:0 8px 0 0;vertical-align:-3px;accent-color:var(--mint-ink)}
+tbody tr.row.picked td{background:var(--mint-soft)}
+.ficha{margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:0}
+.fitem{display:grid;grid-template-columns:78px minmax(0,1fr);gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:.9rem}
+.fitem:first-of-type{border-top:none}
+.fitem .date{color:var(--muted);font-variant-numeric:tabular-nums}
+.fitem .k{display:inline-block;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;border-radius:4px;padding:0 5px;margin-right:4px;background:var(--surface-2);color:var(--slate)}
+.fitem .k.inc{background:var(--coral-soft);color:var(--coral)}
+.fitem .k.ok{background:var(--mint-soft);color:var(--mint-ink)}
 .qrside{display:flex;flex-direction:column;gap:6px;flex:1;min-width:180px}
 .qrside .btn.primary{position:static;box-shadow:none;font-size:.95rem;padding:10px 12px}
 .kind{display:inline-block;font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--slate);background:var(--surface-2);border-radius:5px;padding:1px 6px;margin-right:6px;vertical-align:1px}
@@ -231,6 +242,7 @@ section.panel{scroll-margin-top:64px}
   .hitem{grid-template-columns:minmax(0,1fr);gap:4px}
   .confirm{justify-content:flex-start}
 }
+@media (max-width:720px){.fitem{grid-template-columns:minmax(0,1fr);gap:2px}}
 .syncbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:.85rem}
 .sync{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
 .sync::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--muted)}
@@ -318,6 +330,24 @@ section.panel{scroll-margin-top:64px}
       <div class="panel-head">
         <h2 id="h-inv">Dónde está cada dispositivo</h2>
         <span class="muted small">Toca una fila para registrar su movimiento</span>
+      </div>
+      <div class="filters">
+        <button type="button" class="btn small" id="b-sel">Imprimir varias etiquetas</button>
+        <button type="button" class="btn small" id="b-informe">Informe de inventario (PDF)</button>
+      </div>
+      <div id="informe-msg" aria-live="polite"></div>
+      <div class="selbar" id="selbar" hidden>
+        <div class="small"><strong id="sel-n">0 seleccionados</strong> · toca las filas para marcarlas</div>
+        <div class="filters">
+          <button type="button" class="btn small" id="sel-all">Todos los que se ven</button>
+          <button type="button" class="btn small" id="sel-none">Ninguno</button>
+        </div>
+        <div class="filters">
+          <select id="sel-pos" aria-label="Primera posición libre en la hoja"></select>
+          <button type="button" class="btn primary small" id="sel-pdf" style="position:static;box-shadow:none">Descargar PDF</button>
+          <button type="button" class="btn small" id="sel-cancel">Cancelar</button>
+        </div>
+        <div class="small muted" id="sel-msg">Empieza en la posición elegida y sigue en orden; si no caben, añade más hojas.</div>
       </div>
       <div class="filters">
         <input type="text" id="q" placeholder="Buscar por nº de serie, aula, profesor…" aria-label="Buscar">
@@ -2824,6 +2854,7 @@ var qrcode = function() {
 
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
 (function(){
   const $ = s => document.querySelector(s);
@@ -2845,6 +2876,7 @@ var qrcode = function() {
   let db = null, equipos = [], movs = [], listas = {profesores:[], aulas:[]};
   let canWrite = true, saving = false;
   let revistas = [], incidencias = [], incOpenFor = null, incShowDone = false;
+  let selMode = false, sel = new Set(), fichaOpen = false, visibles = [];
   const lsg = k => { try{ return localStorage.getItem(k)||""; }catch(_){ return ""; } };
   const lss = (k,v) => { try{ localStorage.setItem(k,v); }catch(_){} };
   const COLORES = ["Negro","Gris","Rojo","Otro"];
@@ -2904,7 +2936,8 @@ var qrcode = function() {
     box.innerHTML = `Ahora está en <strong>${esc(e.ubicacion)}</strong>`+
       (e.tiene?` · lo tiene <strong>${esc(e.tiene)}</strong>`:"")+
       (e.observaciones?`<br><span class="muted">${esc(e.observaciones)}</span>`:"")+
-      `<div class="cur-actions"><button type="button" class="btn link small" id="b-edit">${e.marca||e.modelo?"Editar datos":"Añadir marca y modelo"}</button><button type="button" class="btn link small" id="b-inc">Abrir incidencia</button><button type="button" class="btn link small" id="b-qr">${qrOpen?"Ocultar etiqueta QR":"Imprimir etiqueta QR"}</button></div>`+
+      `<div class="cur-actions"><button type="button" class="btn link small" id="b-edit">${e.marca||e.modelo?"Editar datos":"Añadir marca y modelo"}</button><button type="button" class="btn link small" id="b-ficha">${fichaOpen?"Ocultar historial":"Ver historial"}</button><button type="button" class="btn link small" id="b-inc">Abrir incidencia</button><button type="button" class="btn link small" id="b-qr">${qrOpen?"Ocultar etiqueta QR":"Imprimir etiqueta QR"}</button></div>`+
+      (fichaOpen?fichaHtml(e):"")+
       (qrOpen?qrHtml(e):"")+
       incAbiertas(e._id).map(i=>`<div class="small" style="margin-top:6px"><span class="badge open">Incidencia</span> ${esc(i.descripcion)} <span class="muted">(${fmt(i.fecha)})</span></div>`).join("")+
       (incOpenFor===e._id?`<div class="incform"><label class="small" for="inc-desc"><strong>Nueva incidencia</strong> de ${esc(e.serie)}${mm(e)?" · "+esc(mm(e)):""}</label>
@@ -2926,13 +2959,125 @@ var qrcode = function() {
       <div class="small muted" id="qr-msg">Imprime a tamaño real (100 %).</div></div></div>`;
   }
 
+  /* ---------- informe de inventario (PDF) ---------- */
+  const MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  async function informePdf(){
+    const doc=nuevoPdf();
+    if(typeof doc.autoTable!=="function") throw new Error("nolib");
+    const W=210, M=16, PIZ=[90,86,112], COR=[227,77,97], MEN=[181,207,191], TXT=[47,44,64], GRI=[107,104,128];
+    const hoy=new Date(), fechaLarga=`${hoy.getDate()} de ${MESES[hoy.getMonth()]} de ${hoy.getFullYear()}`;
+    const T=pdfTxt;
+    // cabecera
+    const logo=document.querySelector(".logo img");
+    if(logo && logo.src.startsWith("data:image/png")){ try{ doc.addImage(logo.src,"PNG",M,12,25.8,18); }catch(_){} }
+    doc.setFont("helvetica","bold"); doc.setFontSize(15); doc.setTextColor(...TXT);
+    doc.text(T("INFORME DE INVENTARIO TIC"), W-M, 18, {align:"right"});
+    doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(...GRI);
+    doc.text(T("CEIP Plurilingüe de Monforte de Lemos · 27016662"), W-M, 24, {align:"right"});
+    doc.text(T("Monforte de Lemos, "+fechaLarga), W-M, 29, {align:"right"});
+    const sw=W-2*M; doc.setFillColor(...PIZ); doc.rect(M,34,sw*0.5,1.4,"F"); doc.setFillColor(...COR); doc.rect(M+sw*0.5,34,sw*0.17,1.4,"F"); doc.setFillColor(...MEN); doc.rect(M+sw*0.67,34,sw*0.33,1.4,"F");
+    let y=44;
+    const titulo=(t)=>{ if(y>262){ doc.addPage(); y=20; } doc.setFont("helvetica","bold"); doc.setFontSize(8.5); doc.setTextColor(...COR); doc.text(T(t.toUpperCase()), M, y); y+=5; };
+    const parrafo=(t)=>{ doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(...TXT); const l=doc.splitTextToSize(T(t), sw); if(y+l.length*4.6>280){ doc.addPage(); y=20; } doc.text(l, M, y); y+=l.length*4.6+2; };
+    const tabla=(head, body, opts)=>{ doc.autoTable(Object.assign({head:[head.map(T)], body:body.map(r=>r.map(c=>T(c))), startY:y, margin:{left:M,right:M,bottom:18},
+      styles:{font:"helvetica", fontSize:8.2, textColor:TXT, cellPadding:1.8, lineColor:[220,218,227], lineWidth:0.1},
+      headStyles:{fillColor:MEN, textColor:[46,90,65], fontStyle:"bold"}, alternateRowStyles:{fillColor:[247,247,249]}}, opts||{})); y=doc.lastAutoTable.finalY+8; };
+    // 1. resumen
+    titulo("1. Resumen");
+    const cuenta=(arr,f)=>{ const m={}; arr.forEach(e=>{ const k=f(e)||"—"; m[k]=(m[k]||0)+1; }); return Object.entries(m).sort((a,b)=>b[1]-a[1]); };
+    const arm=equipos.filter(e=>locClass(e.ubicacion)==="armario").length, lost=equipos.filter(e=>locClass(e.ubicacion)==="lost").length;
+    const incAb=incidencias.filter(i=>i.estado!=="resuelta"), incRes=incidencias.filter(i=>i.estado==="resuelta");
+    parrafo(`El centro tiene registrados ${equipos.length} dispositivos: ${cuenta(equipos,claseDe).map(([k,v])=>`${v} ${k.toLowerCase()}${v>1?(/[aeiouáéíóú]$/i.test(k)?"s":"es"):""}`).join(", ")}. ${arm} están guardados en el armario, ${equipos.length-arm-lost} en aulas o con profesorado${lost?` y ${lost} sin localizar`:""}. Hay ${incAb.length} incidencia${incAb.length===1?"":"s"} abierta${incAb.length===1?"":"s"} y ${incRes.length} resuelta${incRes.length===1?"":"s"}. Se han anotado ${movs.length} movimiento${movs.length===1?"":"s"}.`);
+    tabla(["De quién es","Dispositivos"], cuenta(equipos,e=>GRUPO_TXT[e.tipo]||e.tipo).map(([k,v])=>[k,String(v)]), {tableWidth:90, columnStyles:{1:{halign:"right"}}});
+    // 2. inventario
+    titulo("2. Inventario por ubicación");
+    const orden=[...equipos].sort((a,b)=>(a.ubicacion||"").localeCompare(b.ubicacion||"","es")||(a.orden||0)-(b.orden||0));
+    tabla(["Ubicación","Nº de serie","Tipo","Marca y modelo","Asignado / lo tiene","Últ. cambio"],
+      orden.map(e=>[e.ubicacion||"—", e.serie, claseDe(e), mm(e)||"—", [e.tiene, e.asignado&&e.asignado!==e.tiene?"asig.: "+e.asignado:""].filter(Boolean).join(" · ")||"—", fmt(e.fechaCambio)]),
+      {columnStyles:{1:{font:"courier", fontSize:7.6}}});
+    // 3. revista
+    titulo("3. Última revista");
+    const ult=[...revistas].sort((a,b)=>(b.inicio||"").localeCompare(a.inicio||""))[0];
+    if(!ult) parrafo("Todavía no se ha pasado revista con la aplicación.");
+    else{
+      const v=vistosDe(ult), falt=equipos.filter(e=>!v[e._id]), fuera=equipos.filter(e=>v[e._id]&&v[e._id].aula!==e.ubicacion);
+      parrafo(`Revista ${ult.estado==="abierta"?"en curso, empezada":"realizada"} el ${fmt(ult.inicio)}${ult.fin&&ult.fin!==ult.inicio?" (terminada el "+fmt(ult.fin)+")":""}: se comprobaron ${equipos.length-falt.length} de ${equipos.length} dispositivos.${falt.length?"":" No faltó ninguno."}`);
+      if(falt.length) tabla(["No encontrados","Tipo","Marca y modelo","Ubicación esperada"], falt.map(e=>[e.serie, claseDe(e), mm(e)||"—", e.ubicacion||"—"]), {columnStyles:{0:{font:"courier", fontSize:7.6}}});
+      if(fuera.length) tabla(["En un sitio distinto","Visto en","Constaba en"], fuera.map(e=>[e.serie, v[e._id].aula, e.ubicacion]), {columnStyles:{0:{font:"courier", fontSize:7.6}}});
+    }
+    // 4. incidencias
+    titulo("4. Incidencias");
+    if(!incidencias.length) parrafo("No hay incidencias registradas.");
+    else{
+      if(incAb.length) tabla(["Desde","Nº de serie","Marca y modelo","Incidencia"], incAb.sort((a,b)=>(a.fecha||"").localeCompare(b.fecha||"")).map(i=>{ const e=equipos.find(x=>x._id===i.equipoId); return [fmt(i.fecha), (e&&e.serie)||i.serie, (e&&mm(e))||[i.marca,i.modelo].filter(Boolean).join(" ")||"—", i.descripcion]; }), {columnStyles:{1:{font:"courier", fontSize:7.6}}});
+      else parrafo("No hay incidencias abiertas.");
+      if(incRes.length) tabla(["Resuelta","Nº de serie","Incidencia","Solución"], incRes.sort((a,b)=>(b.fechaResuelta||"").localeCompare(a.fechaResuelta||"")).map(i=>[fmt(i.fechaResuelta), i.serie, i.descripcion, i.solucion||"—"]), {columnStyles:{1:{font:"courier", fontSize:7.6}}});
+    }
+    // firma
+    if(y>245){ doc.addPage(); y=30; }
+    y+=10; doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(...TXT);
+    doc.text(T("Monforte de Lemos, "+fechaLarga), W-M, y, {align:"right"}); y+=22;
+    doc.setDrawColor(...GRI); doc.setLineWidth(0.2); doc.line(W-M-62, y, W-M, y); y+=5;
+    doc.text(T("Fdo.: Oscar González"), W-M, y, {align:"right"}); y+=4.5;
+    doc.setTextColor(...GRI); doc.text(T("Coordinador TIC · EDIXGAL"), W-M, y, {align:"right"});
+    // pie con páginas
+    const np=doc.getNumberOfPages();
+    for(let p=1;p<=np;p++){ doc.setPage(p); doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(...GRI);
+      doc.text(T("Informe de inventario TIC · CEIP Plurilingüe de Monforte de Lemos"), M, 289); doc.text(T(`Página ${p} de ${np}`), W-M, 289, {align:"right"}); }
+    const nombre="informe-inventario-TIC-"+today()+".pdf";
+    await guardarPdf(doc,nombre); return nombre;
+  }
+  $("#b-informe").addEventListener("click",()=>{
+    $("#informe-msg").innerHTML='<div class="msg ok">Generando el informe…</div>';
+    informePdf().then(n=>{ $("#informe-msg").innerHTML=`<div class="msg ok">Informe listo (${esc(n)}).</div>`; })
+      .catch(err=>{ $("#informe-msg").innerHTML=`<div class="msg err">${err&&err.message==="nolib"?"No se pudo cargar el generador de PDF. Revisa la conexión a internet.":"No se pudo generar el informe."}</div>`; });
+  });
+
+  /* ---------- historial de un equipo ---------- */
+  function eventosDe(e){
+    const ev=[];
+    movs.filter(m=>m.equipoId===e._id).forEach(m=>ev.push({f:m.fecha, o:m.creado||"", k:"Movimiento", c:"",
+      t:`${esc(m.desde||"—")} → <strong>${esc(m.hacia)}</strong>${m.profesor?` · lo recoge ${esc(m.profesor)}`:""}${m.nota?` · <span class="muted">${esc(m.nota)}</span>`:""}`}));
+    incidencias.filter(i=>i.equipoId===e._id).forEach(i=>{
+      ev.push({f:i.fecha, o:i.creado||"", k:"Incidencia", c:"inc", t:esc(i.descripcion)});
+      if(i.estado==="resuelta") ev.push({f:i.fechaResuelta, o:"~", k:"Resuelta", c:"ok", t:esc(i.descripcion)+(i.solucion?` · ${esc(i.solucion)}`:"")});
+    });
+    revistas.forEach(r=>{ const v=vistosDe(r)[e._id];
+      if(v) ev.push({f:v.fecha||r.fin||r.inicio, o:"", k:"Revista", c:"ok", t:`Visto en ${esc(v.aula||"(sin aula)")}`});
+      else if(r.estado==="cerrada") ev.push({f:r.fin||r.inicio, o:"", k:"Revista", c:"inc", t:"No apareció al pasar revista"});
+    });
+    return ev.sort((a,b)=>(b.f||"").localeCompare(a.f||"") || (b.o||"").localeCompare(a.o||""));
+  }
+  function fichaHtml(e){
+    const ev=eventosDe(e);
+    const cab=`<div class="small" style="margin-bottom:4px"><strong>Historial de ${esc(e.serie)}</strong>${mm(e)?" · "+esc(mm(e)):""} · ${esc(claseDe(e))}${e.asignado?" · asignado a "+esc(e.asignado):""}</div>`;
+    if(!ev.length) return `<div class="ficha">${cab}<div class="small muted">Todavía no tiene movimientos, incidencias ni revistas anotadas. Último cambio de ubicación: ${fmt(e.fechaCambio)}.</div></div>`;
+    return `<div class="ficha">${cab}${ev.map(x=>`<div class="fitem"><div class="date">${fmt(x.f)}</div><div><span class="k ${x.c}">${x.k}</span>${x.t}</div></div>`).join("")}</div>`;
+  }
+
   /* ---------- PDF de la etiqueta (70 × 37 mm en A4, 3 × 8) ---------- */
   const TIPO_ETQ = {"Profesor EDIXGAL":["PROFESOR · EDIXGAL",[90,86,112]],"Aula EDIXGAL":["AULA · EDIXGAL",[46,125,87]],"PT/AL":["PT / AL",[227,77,97]],"Otro":["CENTRO",[138,134,152]]};
   const pdfTxt = t => (t||"").toString().replace(/…/g,"...").replace(/[^\x20-\x7E\xA0-\xFF]/g,"");
+  function nuevoPdf(){ if(!window.jspdf) throw new Error("nolib"); const { jsPDF } = window.jspdf; return new jsPDF({unit:"mm", format:"a4", orientation:"portrait"}); }
+  async function guardarPdf(doc, nombre){
+    const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
+    if(dl){ await dl.save({filename:nombre, data:doc.output("blob")}); } else doc.save(nombre);
+  }
   async function etiquetaPdf(e, pos){
-    if(!window.jspdf){ throw new Error("nolib"); }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({unit:"mm", format:"a4", orientation:"portrait"});
+    const doc = nuevoPdf();
+    dibujarEtiqueta(doc, e, pos);
+    const nombre = "etiqueta-"+(e.serie||e._id).replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"")+".pdf";
+    await guardarPdf(doc, nombre);
+    return nombre;
+  }
+  async function etiquetasPdf(list, start){
+    const doc = nuevoPdf(); let slot=start;
+    list.forEach(e=>{ if(slot>24){ doc.addPage(); slot=1; } dibujarEtiqueta(doc, e, slot); slot++; });
+    const nombre = "etiquetas-"+list.length+"-dispositivos-"+today()+".pdf";
+    await guardarPdf(doc, nombre);
+    return {nombre, siguiente: slot>24?1:slot};
+  }
+  function dibujarEtiqueta(doc, e, pos){
     const i=pos-1, x=(i%3)*70, y=Math.floor(i/3)*37;
     const [tipoTxt, col] = TIPO_ETQ[e.tipo] || TIPO_ETQ["Otro"];
     doc.setDrawColor(214,212,222); doc.setLineWidth(0.15); doc.setLineDashPattern([1,1],0); doc.rect(x,y,70,37); doc.setLineDashPattern([],0);
@@ -2960,14 +3105,10 @@ var qrcode = function() {
     if(extra){ doc.setFontSize(6.4); const l2=doc.splitTextToSize(pdfTxt(extra), w).slice(0,2); doc.text(l2, tx, ty); ty+=l2.length*2.6; }
     doc.setFontSize(5.8); doc.setTextColor(138,134,152);
     doc.text(["Escanea para registrar","a dónde va este dispositivo"].map(pdfTxt), tx, Math.max(ty+0.6, y+31.2));
-    const nombre = "etiqueta-"+(e.serie||e._id).replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"")+".pdf";
-    const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
-    if(dl){ await dl.save({filename:nombre, data:doc.output("blob")}); }
-    else doc.save(nombre);
-    return nombre;
   }
   $("#f-current").addEventListener("click",ev=>{
     if(ev.target.closest("#b-qr")){ qrOpen=!qrOpen; renderCurrent(); }
+    else if(ev.target.closest("#b-ficha")){ fichaOpen=!fichaOpen; renderCurrent(); }
     else if(ev.target.closest("#b-inc")){ incOpenFor=$("#f-equipo").value; renderCurrent(); setTimeout(()=>{ const t=$("#inc-desc"); if(t) t.focus(); },30); }
     else if(ev.target.closest("#inc-cancel")){ incOpenFor=null; renderCurrent(); }
     else if(ev.target.closest("#inc-save")){
@@ -3005,19 +3146,20 @@ var qrcode = function() {
   }
 
   function renderTable(){
-    const q=norm($("#q").value), fl=$("#fl").value, sel=$("#f-equipo").value;
+    const q=norm($("#q").value), fl=$("#fl").value, selId=$("#f-equipo").value;
     const tb=$("#tb");
     if(!equipos.length){ tb.innerHTML='<tr><td colspan="6"><div class="empty">Todavía no hay dispositivos en el inventario.</div></td></tr>'; return; }
     const fc=$("#fc").value;
     const vis=equipos.filter(e=>(!fl||e.ubicacion===fl) &&
       (!fc || (fc==="otros" ? !["Portátil","Tablet"].includes(claseDe(e)) : claseDe(e)===fc)) &&
       (!q || norm([claseDe(e),e.serie,e.marca,e.modelo,e.color,e.ubicacion,e.tiene,e.asignado,e.observaciones].join(" ")).includes(q)));
+    visibles=vis;
     let html="";
     grupos(vis).forEach(({label:gl,items:g})=>{
       html += `<tr class="group"><td colspan="6">${esc(gl)} · ${g.length}</td></tr>`;
       g.forEach(e=>{
-        html += `<tr class="row${e._id===sel?" sel":""}" data-id="${esc(e._id)}" tabindex="0">
-          <td class="c-serie"><span class="serie">${esc(e.serie)}</span>${e.observaciones?`<br><span class="flag">${esc(e.observaciones)}</span>`:""}${incAbiertas(e._id).length?`<br><span class="flag inc">Incidencia abierta</span>`:""}</td>
+        html += `<tr class="row${e._id===selId?" sel":""}${selMode&&sel.has(e._id)?" picked":""}" data-id="${esc(e._id)}" tabindex="0">
+          <td class="c-serie">${selMode?`<input type="checkbox" class="selbox" tabindex="-1" aria-label="Seleccionar ${esc(e.serie)}"${sel.has(e._id)?" checked":""}>`:""}<span class="serie">${esc(e.serie)}</span>${e.observaciones?`<br><span class="flag">${esc(e.observaciones)}</span>`:""}${incAbiertas(e._id).length?`<br><span class="flag inc">Incidencia abierta</span>`:""}</td>
           <td class="small c-modelo${mm(e)||claseDe(e)!=="Portátil"?"":" is-empty"}">${claseDe(e)!=="Portátil"?`<span class="kind">${esc(claseDe(e))}</span>`:""}${esc(mm(e)||(claseDe(e)!=="Portátil"?"":"—"))}</td>
           <td class="small c-color${e.color?"":" is-empty"}">${e.color?`<span class="sw"><i class="c-${norm(e.color)}"></i>${esc(e.color)}</span>`:'<span class="muted">—</span>'}</td>
           <td class="c-loc"><span class="loc ${locClass(e.ubicacion)}">${esc(e.ubicacion)}</span></td>
@@ -3267,8 +3409,34 @@ var qrcode = function() {
     $("#f-equipo").value=tr.dataset.id; renderCurrent(); renderTable(); showMsg();
     if(window.matchMedia("(max-width:900px)").matches) $("#h-form").closest("section").scrollIntoView({behavior:"smooth",block:"start"});
   }
-  $("#tb").addEventListener("click",ev=>pickRow(ev.target.closest("tr.row")));
-  $("#tb").addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();pickRow(ev.target.closest("tr.row"));} });
+  function toggleSel(tr){ if(!tr) return; const id=tr.dataset.id; sel.has(id)?sel.delete(id):sel.add(id); renderSel(); renderTable(); }
+  $("#tb").addEventListener("click",ev=>{ const tr=ev.target.closest("tr.row"); if(selMode){ ev.preventDefault(); toggleSel(tr); } else pickRow(tr); });
+  $("#tb").addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ev.preventDefault(); const tr=ev.target.closest("tr.row"); selMode?toggleSel(tr):pickRow(tr);} });
+  function renderSel(){
+    $("#selbar").hidden=!selMode; $("#b-sel").hidden=selMode;
+    $("#sel-n").textContent = sel.size===1 ? "1 seleccionado" : sel.size+" seleccionados";
+    $("#sel-pdf").textContent = sel.size ? `Descargar PDF (${sel.size} etiqueta${sel.size>1?"s":""})` : "Descargar PDF";
+    $("#sel-pdf").disabled = !sel.size;
+  }
+  $("#b-sel").addEventListener("click",()=>{
+    selMode=true; sel.clear();
+    let pos=1; try{ pos=parseInt(localStorage.getItem("ceip-tic-pos"),10)||1; }catch(_){}
+    $("#sel-pos").innerHTML=Array.from({length:24},(_,i)=>`<option value="${i+1}"${i+1===pos?" selected":""}>Empezar en la ${i+1} · fila ${Math.floor(i/3)+1}, col. ${i%3+1}</option>`).join("");
+    $("#sel-msg").textContent="Empieza en la posición elegida y sigue en orden; si no caben, añade más hojas.";
+    renderSel(); renderTable();
+  });
+  $("#sel-cancel").addEventListener("click",()=>{ selMode=false; sel.clear(); renderSel(); renderTable(); });
+  $("#sel-all").addEventListener("click",()=>{ visibles.forEach(e=>sel.add(e._id)); renderSel(); renderTable(); });
+  $("#sel-none").addEventListener("click",()=>{ sel.clear(); renderSel(); renderTable(); });
+  $("#sel-pdf").addEventListener("click",()=>{
+    const list=equipos.filter(e=>sel.has(e._id)); if(!list.length) return;
+    const start=parseInt($("#sel-pos").value,10)||1;
+    etiquetasPdf(list,start).then(({nombre,siguiente})=>{
+      $("#sel-msg").textContent=`PDF listo (${nombre}). Imprímelo a tamaño real (100 %).`;
+      try{ localStorage.setItem("ceip-tic-pos",String(siguiente)); }catch(_){}
+      $("#sel-pos").value=String(siguiente);
+    }).catch(err=>{ $("#sel-msg").textContent = err&&err.message==="nolib" ? "No se pudo cargar el generador de PDF. Revisa la conexión a internet." : "No se pudo descargar el PDF."; });
+  });
 
   async function saveListas(){
     if(!db) return;
@@ -3351,7 +3519,7 @@ var qrcode = function() {
       movs=s.docs.map(d=>Object.assign({_id:d.id},d.data()))
         .sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||"")||(b.creado||"").localeCompare(a.creado||""));
       if(!s.metadata.fromCache) done();
-      renderSummary(); renderHist();
+      renderSummary(); renderHist(); if(fichaOpen) renderCurrent();
     },()=>{});
     db.collection("revistas").onSnapshot(s=>{
       revistas=s.docs.map(d=>Object.assign({_id:d.id},d.data())); revLoaded=true;
