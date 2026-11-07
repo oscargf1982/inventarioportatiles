@@ -203,10 +203,19 @@ section.panel{scroll-margin-top:64px}
   .top .titles .muted{display:none}
   .eyebrow{font-size:.62rem;letter-spacing:.08em}
   h1{font-size:1.25rem}
-  .mnav{display:flex;overflow-x:auto;scrollbar-width:none;gap:6px;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px));position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px;margin-block:-8px}
-  .mnav::-webkit-scrollbar{display:none}
-  .mnav button{flex:none;padding-inline:14px !important;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:9px 6px;font-family:var(--f-display);font-size:.9rem;cursor:pointer;color:var(--fg)}
-  .mnav button:active{background:var(--chip-on);color:var(--chip-on-fg)}
+  body{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+  section.panel{scroll-margin-top:calc(14px + env(safe-area-inset-top,0px))}
+  .mnav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:end;
+    padding:6px max(4px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 18px rgba(0,0,0,.07)}
+  .mnav button{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;border:none;background:none;padding:4px 0;border-radius:10px;
+    font-family:var(--f-body);font-size:.66rem;font-weight:600;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .mnav button span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mnav button svg{width:23px;height:23px}
+  .mnav button.on{color:var(--slate)}
+  .mnav button.on svg{stroke-width:2.3}
+  .mnav button.scanbtn svg{width:48px;height:48px;padding:12px;margin-top:-22px;border-radius:50%;background:var(--coral);color:#fff;box-shadow:0 6px 14px rgba(227,77,97,.35)}
+  .mnav button.scanbtn{color:var(--coral)}
+  .mnav button:active svg{transform:scale(.92)}
   .eb-tic{display:none}
   .summary{flex-wrap:nowrap;overflow-x:auto;gap:6px;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px));scrollbar-width:none}
   .summary::-webkit-scrollbar{display:none}
@@ -219,7 +228,7 @@ section.panel{scroll-margin-top:64px}
   .chip>span::before{width:16px;height:16px}
   select,input[type=date],input[type=text],input[type=password],textarea{padding:12px;font-size:16px}
   .btn{padding:11px 14px}
-  #b-save{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);z-index:4;box-shadow:0 6px 18px rgba(0,0,0,.18);padding:14px 16px;font-size:1.05rem}
+  #b-save{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 80px);z-index:4;box-shadow:0 6px 18px rgba(0,0,0,.18);padding:14px 16px;font-size:1.05rem}
   .filters select{width:100%}
   /* La tabla pasa a tarjetas */
   .tablebox{border:none;overflow:visible}
@@ -243,6 +252,33 @@ section.panel{scroll-margin-top:64px}
   .confirm{justify-content:flex-start}
 }
 @media (max-width:720px){.fitem{grid-template-columns:minmax(0,1fr);gap:2px}}
+/* Lector de QR */
+.scan{position:fixed;inset:0;z-index:60;background:#000;display:flex;flex-direction:column}
+.scan[hidden]{display:none!important}
+.scan video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.scan-frame{position:absolute;left:50%;top:44%;width:min(66vw,280px);aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #fff;border-radius:18px;box-shadow:0 0 0 100vmax rgba(0,0,0,.45)}
+.scan-top{position:relative;margin:calc(18px + env(safe-area-inset-top,0px)) 16px 0;text-align:center;color:#fff;font-family:var(--f-display);font-size:1.05rem}
+.scan-bot{position:absolute;left:0;right:0;bottom:0;padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px;align-items:stretch}
+.scan-bot .btn{background:#fff;color:#2F2C40;border-color:#fff;font-size:1rem;padding:13px}
+#scan-msg:empty{display:none}
+#scan-msg{border-radius:10px;padding:10px 12px;font-size:.95rem;background:rgba(255,255,255,.92);color:#2F2C40}
+#scan-msg.ok{background:#E6F2EA;color:#24553A}
+#scan-msg.err{background:#FBE3E6;color:#A3283A}
+/* Botones rápidos */
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.quick .btn{font-size:.9rem;padding:8px 12px;background:var(--surface)}
+.quick .btn.armed{background:var(--coral);border-color:var(--coral);color:#fff}
+/* Hoja de entrega */
+.sheet{position:fixed;inset:0;z-index:55;background:rgba(20,18,30,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet[hidden]{display:none!important}
+.sheet-box{background:var(--bg);width:min(560px,100%);max-height:94vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px max(16px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:9px}
+@media (min-width:721px){.sheet{align-items:center}.sheet-box{border-radius:16px}}
+.sheet-box .row{display:flex;gap:8px;flex-wrap:wrap}
+.sheet-box .row .btn.primary{position:static;box-shadow:none;flex:1}
+.firma-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px}
+#ent-firma{width:100%;height:170px;background:#fff;border:1.5px dashed var(--line);border-radius:10px;touch-action:none;display:block}
+.check{display:flex;align-items:center;gap:8px}
+.check input{width:20px;height:20px}
 .syncbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:.85rem}
 .sync{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
 .sync::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--muted)}
@@ -271,12 +307,49 @@ section.panel{scroll-margin-top:64px}
   <div class="syncbar"><span id="sync" class="sync">Conectando con la hoja…</span><button type="button" class="btn link small" id="b-logout">Desconectar este móvil</button></div>
 
   <nav class="mnav" aria-label="Ir a">
-    <button type="button" data-go="h-form">Registrar</button>
-    <button type="button" data-go="h-inv">Dispositivos</button>
-    <button type="button" data-go="h-rev">Revista</button>
-    <button type="button" data-go="h-inc">Incidencias</button>
-    <button type="button" data-go="h-hist">Historial</button>
+    <button type="button" data-go="h-form"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg><span>Registrar</span></button>
+    <button type="button" data-go="h-inv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg><span>Equipos</span></button>
+    <button type="button" data-go="h-rev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9zM9 13l2 2 4-4"/></svg><span>Revista</span></button>
+    <button type="button" class="scanbtn" data-scan><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 8h3v3H8zM13 13h3v3h-3zM13 8h3M8 16h3"/></svg><span>Escanear</span></button>
+    <button type="button" data-go="h-inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17v.5"/></svg><span>Incidencias</span></button>
+    <button type="button" data-go="h-hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg><span>Historial</span></button>
   </nav>
+
+  <div class="scan" id="scan" hidden role="dialog" aria-modal="true" aria-label="Escanear el QR de un dispositivo">
+    <video id="scan-v" playsinline muted autoplay></video>
+    <div class="scan-frame" aria-hidden="true"></div>
+    <div class="scan-top" id="scan-title">Apunta al QR de la etiqueta</div>
+    <div class="scan-bot"><div id="scan-msg" aria-live="polite"></div><button type="button" class="btn" id="scan-close">Cerrar</button></div>
+  </div>
+
+  <div class="sheet" id="ent" hidden role="dialog" aria-modal="true" aria-labelledby="ent-h">
+    <div class="sheet-box">
+      <div class="panel-head"><h2 id="ent-h">Hoja de entrega</h2><button type="button" class="btn small" id="ent-x" aria-label="Cerrar">Cerrar</button></div>
+      <div class="small muted" id="ent-eq"></div>
+      <div class="chips" id="ent-tipo">
+        <label class="chip"><input type="radio" name="enttipo" value="entrega" checked><span>Entrega</span></label>
+        <label class="chip"><input type="radio" name="enttipo" value="devolucion"><span>Devolución</span></label>
+      </div>
+      <label class="small" for="ent-per" id="ent-per-l"><strong>Quién lo recibe</strong></label>
+      <select id="ent-per"></select>
+      <input type="text" id="ent-per-otro" placeholder="Otra persona (nombre y apellidos)" hidden>
+      <label class="small" for="ent-dest" id="ent-dest-l"><strong>A dónde va</strong></label>
+      <select id="ent-dest"></select>
+      <span class="small"><strong>Material</strong></span>
+      <div class="chips" id="ent-mat">
+        <label class="chip"><input type="checkbox" value="Cargador" checked><span>Cargador</span></label>
+        <label class="chip"><input type="checkbox" value="Funda"><span>Funda</span></label>
+        <label class="chip"><input type="checkbox" value="Ratón"><span>Ratón</span></label>
+      </div>
+      <label class="small" for="ent-obs"><strong>Estado u observaciones</strong> <span class="muted">(opcional)</span></label>
+      <input type="text" id="ent-obs" placeholder="Ej.: buen estado, pequeño golpe en la tapa…">
+      <div class="firma-h"><span class="small"><strong id="ent-firma-l">Firma de quien lo recibe</strong> (con el dedo)</span><button type="button" class="btn link small" id="ent-borrar">Borrar firma</button></div>
+      <canvas id="ent-firma" aria-label="Recuadro para firmar"></canvas>
+      <label class="small check"><input type="checkbox" id="ent-mov" checked> Anotar también el movimiento en el registro</label>
+      <div id="ent-msg" aria-live="polite"></div>
+      <div class="row"><button type="button" class="btn primary" id="ent-pdf">Guardar y descargar PDF</button><button type="button" class="btn" id="ent-cancel">Cancelar</button></div>
+    </div>
+  </div>
 
   <div class="summary" id="summary" aria-live="polite">
     <div class="stat"><b>–</b><span class="muted">Cargando inventario…</span></div>
@@ -2936,7 +3009,8 @@ var qrcode = function() {
     box.innerHTML = `Ahora está en <strong>${esc(e.ubicacion)}</strong>`+
       (e.tiene?` · lo tiene <strong>${esc(e.tiene)}</strong>`:"")+
       (e.observaciones?`<br><span class="muted">${esc(e.observaciones)}</span>`:"")+
-      `<div class="cur-actions"><button type="button" class="btn link small" id="b-edit">${e.marca||e.modelo?"Editar datos":"Añadir marca y modelo"}</button><button type="button" class="btn link small" id="b-ficha">${fichaOpen?"Ocultar historial":"Ver historial"}</button><button type="button" class="btn link small" id="b-inc">Abrir incidencia</button><button type="button" class="btn link small" id="b-qr">${qrOpen?"Ocultar etiqueta QR":"Imprimir etiqueta QR"}</button></div>`+
+      `<div class="cur-actions"><button type="button" class="btn link small" id="b-edit">${e.marca||e.modelo?"Editar datos":"Añadir marca y modelo"}</button><button type="button" class="btn link small" id="b-ficha">${fichaOpen?"Ocultar historial":"Ver historial"}</button><button type="button" class="btn link small" id="b-ent">Entrega con firma</button><button type="button" class="btn link small" id="b-inc">Abrir incidencia</button><button type="button" class="btn link small" id="b-qr">${qrOpen?"Ocultar etiqueta QR":"Imprimir etiqueta QR"}</button></div>`+
+      quickHtml(e)+
       (fichaOpen?fichaHtml(e):"")+
       (qrOpen?qrHtml(e):"")+
       incAbiertas(e._id).map(i=>`<div class="small" style="margin-top:6px"><span class="badge open">Incidencia</span> ${esc(i.descripcion)} <span class="muted">(${fmt(i.fecha)})</span></div>`).join("")+
@@ -3057,7 +3131,7 @@ var qrcode = function() {
 
   /* ---------- PDF de la etiqueta (70 × 37 mm en A4, 3 × 8) ---------- */
   const TIPO_ETQ = {"Profesor EDIXGAL":["PROFESOR · EDIXGAL",[90,86,112]],"Aula EDIXGAL":["AULA · EDIXGAL",[46,125,87]],"PT/AL":["PT / AL",[227,77,97]],"Otro":["CENTRO",[138,134,152]]};
-  const pdfTxt = t => (t||"").toString().replace(/…/g,"...").replace(/[^\x20-\x7E\xA0-\xFF]/g,"");
+  const pdfTxt = t => (t||"").toString().replace(/…/g,"...").replace(/[—–]/g,"-").replace(/[^\x20-\x7E\xA0-\xFF]/g,"");
   function nuevoPdf(){ if(!window.jspdf) throw new Error("nolib"); const { jsPDF } = window.jspdf; return new jsPDF({unit:"mm", format:"a4", orientation:"portrait"}); }
   async function guardarPdf(doc, nombre){
     const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
@@ -3338,6 +3412,7 @@ var qrcode = function() {
     if(revAula){
       const aqui=equipos.filter(e=>e.ubicacion===revAula);
       const extra=equipos.filter(e=>e.ubicacion!==revAula && v[e._id] && v[e._id].aula===revAula);
+      html+=`<div><button type="button" class="btn primary" data-scan style="position:static;box-shadow:none">Escanear QR de los equipos</button></div>`;
       html+=`<div class="rv-sec"><h3>Deberían estar en ${esc(revAula)} (${aqui.length})</h3>${aqui.length?`<div class="rv-list">${aqui.map(e=>itemRev(e,v,revAula)).join("")}</div>`:'<div class="small muted">Según el inventario, aquí no hay ninguno.</div>'}</div>`;
       if(extra.length) html+=`<div class="rv-sec"><h3>Encontrados aquí, pero constaban en otro sitio</h3><div class="rv-list">${extra.map(e=>itemRev(e,v,revAula)).join("")}</div></div>`;
       const otros=equipos.filter(e=>e.ubicacion!==revAula && !(v[e._id]&&v[e._id].aula===revAula));
@@ -3368,6 +3443,274 @@ var qrcode = function() {
     else if(t.closest("#rv-end-no")){ revEnding=false; renderRev(); }
     else if(t.closest("#rv-end-yes")){ revEnding=false; const r=revActiva(); if(r) await run(()=>db.doc("revistas/"+r._id).update({estado:"cerrada", fin:today()})); }
   });
+
+  /* ---------- guardar un movimiento (formulario, botones rápidos y hoja de entrega) ---------- */
+  async function moverEquipo(e, aula, prof, nota, fecha){
+    fecha=fecha||today();
+    await db.collection("movimientos").add({
+      equipoId:e._id, serie:e.serie, modelo:mm(e), fecha, desde:e.ubicacion||"", hacia:aula,
+      profesor:prof||"", nota:nota||"", creado:new Date().toISOString()
+    });
+    const upd={ubicacion:aula, tiene:aula==="Armario"?"":(prof||""), fechaCambio:fecha};
+    if(aula==="Armario") upd.asignado="";
+    await db.doc("equipos/"+e._id).update(upd);
+  }
+  function errMov(err){
+    if(err&&err.code==="invalid_argument") return "Tu acceso es solo de lectura: no se pueden guardar movimientos.";
+    return "No se pudo guardar. Revisa la conexión e inténtalo otra vez.";
+  }
+
+  /* ---------- botones de un toque ---------- */
+  let quickArmed=null, quickTimer=null, quickBusy=false;
+  function ultimoMov(){ return [...movs].sort((a,b)=>(b.creado||"").localeCompare(a.creado||""))[0]; }
+  function quickOps(e){
+    const ops=[];
+    if(e.ubicacion!=="Armario") ops.push({k:"armario", t:"Devolver al armario", aula:"Armario", prof:"", nota:"Devuelto al armario"});
+    const u=ultimoMov();
+    if(u && u.hacia && u.hacia!=="Armario" && !(u.hacia===e.ubicacion && (u.profesor||"")===(e.tiene||"")) && u.equipoId!==e._id)
+      ops.push({k:"repetir", t:`Igual que el último: a ${u.hacia}${u.profesor?" con "+u.profesor:""}`, aula:u.hacia, prof:u.profesor||"", nota:""});
+    return ops;
+  }
+  function quickHtml(e){
+    const ops=quickOps(e); if(!ops.length) return "";
+    return `<div class="quick">${ops.map(o=>{ const on=quickArmed&&quickArmed.id===e._id&&quickArmed.k===o.k;
+      return `<button type="button" class="btn small${on?" armed":""}" data-quick="${o.k}"${quickBusy?" disabled":""}>${on?"Toca otra vez para confirmar":esc(o.t)}</button>`; }).join("")}</div>`;
+  }
+  $("#f-current").addEventListener("click",async ev=>{
+    const b=ev.target.closest("[data-quick]"); if(b){
+      const e=equipos.find(x=>x._id===$("#f-equipo").value); if(!e||quickBusy) return;
+      const o=quickOps(e).find(x=>x.k===b.dataset.quick); if(!o) return;
+      if(!(quickArmed&&quickArmed.id===e._id&&quickArmed.k===o.k)){
+        quickArmed={id:e._id,k:o.k}; clearTimeout(quickTimer); quickTimer=setTimeout(()=>{ quickArmed=null; renderCurrent(); },4000); renderCurrent(); return;
+      }
+      clearTimeout(quickTimer); quickArmed=null;
+      if(!db){ showMsg("err","No hay conexión con el registro."); return; }
+      quickBusy=true; renderCurrent();
+      try{ const desde=e.ubicacion; await moverEquipo(e,o.aula,o.prof,o.nota); showMsg("ok",`Guardado: ${e.serie} pasa de ${desde||"—"} a ${o.aula}${o.prof?" (lo recoge "+o.prof+")":""}.`); }
+      catch(err){ showMsg("err",errMov(err)); }
+      finally{ quickBusy=false; renderCurrent(); renderTable(); }
+      return;
+    }
+    if(ev.target.closest("#b-ent")){ const e=equipos.find(x=>x._id===$("#f-equipo").value); if(e) abrirEntrega(e); }
+  });
+
+  /* ---------- lector de QR con la cámara ---------- */
+  let scanStream=null, scanTimer=null, scanDet=null, scanLast="", scanLastT=0;
+  const scanCanvas=document.createElement("canvas");
+  function scanMsg(t,k){ const m=$("#scan-msg"); m.className=k||""; m.textContent=t||""; }
+  function cargarJsQR(){
+    if(window.jsQR) return Promise.resolve();
+    return new Promise((ok,ko)=>{ const sc=document.createElement("script"); sc.src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"; sc.onload=()=>window.jsQR?ok():ko(); sc.onerror=ko; document.head.appendChild(sc); });
+  }
+  async function abrirScan(){
+    $("#scan").hidden=false; scanLast="";
+    const r=revActiva();
+    $("#scan-title").textContent = r&&revAula ? `Pasando revista en ${revAula}: escanea los equipos uno tras otro` : "Apunta al QR de la etiqueta";
+    scanMsg("");
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ scanMsg("Este navegador no deja usar la cámara. Lee el QR con la cámara del móvil.","err"); return; }
+    try{ scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false}); }
+    catch(err){ scanMsg("No se pudo abrir la cámara. Revisa que el navegador tenga permiso de cámara para esta web.","err"); return; }
+    if($("#scan").hidden){ cerrarScan(); return; }
+    const v=$("#scan-v"); v.srcObject=scanStream; try{ await v.play(); }catch(_){}
+    scanDet=null;
+    if("BarcodeDetector" in window){ try{ const f=await BarcodeDetector.getSupportedFormats(); if(f.includes("qr_code")) scanDet=new BarcodeDetector({formats:["qr_code"]}); }catch(_){} }
+    if(!scanDet){ try{ await cargarJsQR(); }catch(_){ scanMsg("No se pudo cargar el lector de QR. Revisa la conexión a internet.","err"); return; } }
+    scanLoop();
+  }
+  async function scanLoop(){
+    if(!scanStream) return;
+    const v=$("#scan-v");
+    if(v.readyState>=2 && v.videoWidth){
+      let txt="";
+      try{
+        if(scanDet){ const r=await scanDet.detect(v); if(r&&r[0]) txt=r[0].rawValue||""; }
+        else if(window.jsQR){
+          const w=Math.min(720,v.videoWidth), h=Math.round(v.videoHeight*w/v.videoWidth);
+          scanCanvas.width=w; scanCanvas.height=h; const cx=scanCanvas.getContext("2d",{willReadFrequently:true});
+          cx.drawImage(v,0,0,w,h); const d=cx.getImageData(0,0,w,h); const r=window.jsQR(d.data,w,h,{inversionAttempts:"dontInvert"}); if(r) txt=r.data||"";
+        }
+      }catch(_){}
+      if(txt) leidoQr(txt);
+    }
+    if(scanStream) scanTimer=setTimeout(scanLoop,160);
+  }
+  function cerrarScan(){
+    clearTimeout(scanTimer);
+    if(scanStream){ scanStream.getTracks().forEach(t=>t.stop()); scanStream=null; }
+    const v=$("#scan-v"); if(v) v.srcObject=null;
+    $("#scan").hidden=true;
+  }
+  function idDeQr(txt){
+    const t=(txt||"").trim(); const m=/#([A-Za-z0-9_-]+)$/.exec(t); const id=m?m[1]:t;
+    if(equipos.some(e=>e._id===id)) return id;
+    const e=equipos.find(e=>e.serie && norm(e.serie)===norm(t)); return e?e._id:"";
+  }
+  function leidoQr(txt){
+    const now=Date.now(); if(txt===scanLast && now-scanLastT<3000) return; scanLast=txt; scanLastT=now;
+    const id=idDeQr(txt);
+    if(!id){ scanMsg("Este QR no corresponde a ningún dispositivo del inventario.","err"); return; }
+    const e=equipos.find(x=>x._id===id);
+    try{ if(navigator.vibrate) navigator.vibrate(70); }catch(_){}
+    const r=revActiva();
+    if(r && revAula){
+      const ya=vistosDe(r)[id];
+      marcarVisto(id, revAula, false).catch(()=>scanMsg("No se pudo guardar. Revisa la conexión.","err"));
+      const fuera = e.ubicacion!==revAula ? ` (constaba en ${e.ubicacion})` : "";
+      scanMsg(`${ya?"Ya estaba visto":"✓ Visto"}: ${e.serie}${mm(e)?" · "+mm(e):""} en ${revAula}${fuera}. Escanea el siguiente.`,"ok");
+      return;
+    }
+    cerrarScan();
+    $("#f-equipo").value=id; renderCurrent(); renderTable();
+    showMsg("ok",`Dispositivo escaneado: ${e.serie}. Marca quién lo recoge y a dónde va, o usa un botón rápido.`);
+    setTimeout(()=>$("#h-form").closest("section").scrollIntoView({behavior:"smooth",block:"start"}),50);
+  }
+  document.addEventListener("click",ev=>{ if(ev.target.closest("[data-scan]")){ ev.preventDefault(); abrirScan(); } });
+  $("#scan-close").addEventListener("click",cerrarScan);
+  document.addEventListener("keydown",ev=>{ if(ev.key==="Escape"){ if(!$("#scan").hidden) cerrarScan(); else if(!$("#ent").hidden) cerrarEntrega(); } });
+  document.addEventListener("visibilitychange",()=>{ if(document.hidden && scanStream) cerrarScan(); });
+
+  /* ---------- hoja de entrega / devolución con firma ---------- */
+  let entEq=null, entFirmado=false, entBusy=false;
+  const entTipo=()=>(document.querySelector('input[name="enttipo"]:checked')||{}).value||"entrega";
+  function entOpciones(){
+    const dev=entTipo()==="devolucion";
+    $("#ent-h").textContent = dev?"Hoja de devolución":"Hoja de entrega";
+    $("#ent-per-l").innerHTML = `<strong>${dev?"Quién lo devuelve":"Quién lo recibe"}</strong>`;
+    $("#ent-dest-l").innerHTML = `<strong>${dev?"Dónde se guarda":"A dónde va"}</strong>`;
+    $("#ent-firma-l").textContent = dev?"Firma de quien lo devuelve":"Firma de quien lo recibe";
+    $("#ent-dest").value = dev ? "Armario" : ($("#ent-dest").dataset.def||"");
+  }
+  function abrirEntrega(e){
+    entEq=e; entFirmado=false;
+    $("#ent-eq").textContent = `${claseDe(e)} · ${e.serie}${mm(e)?" · "+mm(e):""} · ahora en ${e.ubicacion||"—"}`;
+    const profChk=(document.querySelector('input[name="prof"]:checked')||{}).value||"";
+    const aulaChk=(document.querySelector('input[name="aula"]:checked')||{}).value||"";
+    const pers=[...new Set([...(listas.profesores||[]), e.tiene, e.asignado].filter(Boolean))];
+    const defP=profChk||e.tiene||e.asignado||"";
+    $("#ent-per").innerHTML=`<option value="">Elige una persona…</option>`+pers.map(p=>`<option${p===defP?" selected":""}>${esc(p)}</option>`).join("")+`<option value="__otro">Otra persona…</option>`;
+    $("#ent-per-otro").hidden=true; $("#ent-per-otro").value="";
+    const aulas=[...new Set(["Armario", ...(listas.aulas||[]), ...equipos.map(x=>x.ubicacion)].filter(Boolean))];
+    const defA=aulaChk || (e.ubicacion!=="Armario"?e.ubicacion:"");
+    $("#ent-dest").innerHTML=`<option value="">Elige un sitio…</option>`+aulas.map(a=>`<option>${esc(a)}</option>`).join("");
+    $("#ent-dest").dataset.def=defA;
+    document.querySelector('input[name="enttipo"][value="'+(e.ubicacion!=="Armario"&&!aulaChk?"devolucion":"entrega")+'"]').checked=true;
+    $("#ent-obs").value=""; $("#ent-msg").innerHTML=""; $("#ent-mov").checked=true;
+    $("#ent").hidden=false; document.body.style.overflow="hidden";
+    entOpciones();
+    requestAnimationFrame(prepararFirma);
+  }
+  function cerrarEntrega(){ $("#ent").hidden=true; document.body.style.overflow=""; entEq=null; }
+  function prepararFirma(){
+    const c=$("#ent-firma"), r=c.getBoundingClientRect(), dpr=Math.max(1,window.devicePixelRatio||1);
+    c.width=Math.round(r.width*dpr); c.height=Math.round(r.height*dpr);
+    const cx=c.getContext("2d"); cx.setTransform(dpr,0,0,dpr,0,0); cx.fillStyle="#fff"; cx.fillRect(0,0,r.width,r.height);
+    cx.lineWidth=2.4; cx.lineCap="round"; cx.lineJoin="round"; cx.strokeStyle="#1d1b2b";
+    entFirmado=false;
+  }
+  (function(){
+    const c=$("#ent-firma"); let drawing=false, last=null;
+    const pt=ev=>{ const r=c.getBoundingClientRect(); return {x:ev.clientX-r.left, y:ev.clientY-r.top}; };
+    c.addEventListener("pointerdown",ev=>{ ev.preventDefault(); drawing=true; $("#ent-msg").innerHTML=""; last=pt(ev); try{ c.setPointerCapture(ev.pointerId); }catch(_){}
+      const cx=c.getContext("2d"); cx.beginPath(); cx.arc(last.x,last.y,1.2,0,7); cx.fillStyle="#1d1b2b"; cx.fill(); entFirmado=true; });
+    c.addEventListener("pointermove",ev=>{ if(!drawing) return; ev.preventDefault(); const p=pt(ev), cx=c.getContext("2d");
+      cx.beginPath(); cx.moveTo(last.x,last.y); cx.lineTo(p.x,p.y); cx.stroke(); last=p; entFirmado=true; });
+    const fin=()=>{ drawing=false; }; c.addEventListener("pointerup",fin); c.addEventListener("pointercancel",fin); c.addEventListener("pointerleave",fin);
+  })();
+  $("#ent-borrar").addEventListener("click",prepararFirma);
+  $("#ent-x").addEventListener("click",cerrarEntrega);
+  $("#ent-cancel").addEventListener("click",cerrarEntrega);
+  $("#ent").addEventListener("click",ev=>{ if(ev.target.id==="ent") cerrarEntrega(); });
+  $("#ent-tipo").addEventListener("change",entOpciones);
+  $("#ent-per").addEventListener("change",()=>{ const o=$("#ent-per").value==="__otro"; $("#ent-per-otro").hidden=!o; if(o) $("#ent-per-otro").focus(); });
+  window.addEventListener("resize",()=>{ if(!$("#ent").hidden && !entFirmado) prepararFirma(); });
+  $("#ent-pdf").addEventListener("click",async ()=>{
+    if(entBusy||!entEq) return;
+    const e=equipos.find(x=>x._id===entEq._id)||entEq;
+    const dev=entTipo()==="devolucion";
+    const per=$("#ent-per").value==="__otro" ? $("#ent-per-otro").value.trim() : $("#ent-per").value;
+    const dest=$("#ent-dest").value;
+    const mat=[...document.querySelectorAll('#ent-mat input:checked')].map(i=>i.value);
+    const obs=$("#ent-obs").value.trim();
+    const falt=[]; if(!per) falt.push(dev?"quién lo devuelve":"quién lo recibe"); if(!dest) falt.push(dev?"dónde se guarda":"a dónde va"); if(!entFirmado) falt.push("la firma");
+    const msg=(k,t)=>{ $("#ent-msg").innerHTML=t?`<div class="msg ${k}">${esc(t)}</div>`:""; };
+    if(falt.length){ msg("err","Falta "+falt.join(", ")+"."); return; }
+    entBusy=true; $("#ent-pdf").disabled=true; msg("","");
+    const fecha=today();
+    try{
+      if(!window.jspdf){ msg("err","No se pudo cargar el generador de PDF. Revisa la conexión."); return; }
+      const firma=$("#ent-firma").toDataURL("image/png");
+      const nombre=await entregaPdf({e, dev, per, dest, mat, obs, fecha, firma});
+      let txt=`PDF descargado (${nombre}).`;
+      if($("#ent-mov").checked && db && (dest!==e.ubicacion || (dev?"":per)!==(e.tiene||""))){
+        try{ await moverEquipo(e, dest, dev?"":per, `${dev?"Devolución":"Entrega"} firmada por ${per}${mat.length?" · "+mat.join(", ").toLowerCase():""}${obs?" · "+obs:""}`, fecha);
+          txt+=` Movimiento anotado: ${e.serie} a ${dest}.`; }
+        catch(err){ msg("err","El PDF se descargó, pero el movimiento no se pudo guardar: "+errMov(err)); return; }
+      }
+      cerrarEntrega(); showMsg("ok",txt); renderCurrent(); renderTable();
+    }catch(err){ msg("err","No se pudo generar el PDF."); }
+    finally{ entBusy=false; $("#ent-pdf").disabled=false; }
+  });
+  async function entregaPdf(o){
+    const doc=nuevoPdf();
+    const W=210, M=18, PIZ=[90,86,112], COR=[227,77,97], MEN=[181,207,191], TXT=[47,44,64], GRI=[107,104,128], T=pdfTxt, e=o.e;
+    const d=new Date(o.fecha+"T12:00:00"), fechaLarga=`${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
+    const logo=document.querySelector(".logo img");
+    if(logo && logo.src.startsWith("data:image/png")){ try{ doc.addImage(logo.src,"PNG",M,12,25.8,18); }catch(_){} }
+    doc.setFont("helvetica","bold"); doc.setFontSize(15); doc.setTextColor(...TXT);
+    doc.text(T(o.dev?"HOJA DE DEVOLUCIÓN DE EQUIPO":"HOJA DE ENTREGA DE EQUIPO"), W-M, 18, {align:"right"});
+    doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(...GRI);
+    doc.text(T("CEIP Plurilingüe de Monforte de Lemos · 27016662"), W-M, 24, {align:"right"});
+    doc.text(T("Coordinación TIC · EDIXGAL"), W-M, 29, {align:"right"});
+    const sw=W-2*M; doc.setFillColor(...PIZ); doc.rect(M,34,sw*0.5,1.4,"F"); doc.setFillColor(...COR); doc.rect(M+sw*0.5,34,sw*0.17,1.4,"F"); doc.setFillColor(...MEN); doc.rect(M+sw*0.67,34,sw*0.33,1.4,"F");
+    let y=46;
+    const titulo=t=>{ doc.setFont("helvetica","bold"); doc.setFontSize(8.5); doc.setTextColor(...COR); doc.text(T(t.toUpperCase()), M, y); y+=3; };
+    const filas=(rows)=>{
+      if(typeof doc.autoTable==="function"){
+        doc.autoTable({body:rows.map(r=>r.map(T)), startY:y, margin:{left:M,right:M}, theme:"grid",
+          styles:{font:"helvetica", fontSize:9.5, textColor:TXT, cellPadding:2.4, lineColor:[220,218,227], lineWidth:0.1},
+          columnStyles:{0:{cellWidth:48, fontStyle:"bold", fillColor:[241,244,242], textColor:[46,90,65]}}});
+        y=doc.lastAutoTable.finalY+9;
+      } else { doc.setFontSize(9.5); doc.setTextColor(...TXT); rows.forEach(r=>{ y+=5; doc.setFont("helvetica","bold"); doc.text(T(r[0]),M,y); doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(T(r[1]),sw-50),M+50,y); }); y+=9; }
+    };
+    titulo("Datos del dispositivo");
+    filas([["Dispositivo",claseDe(e)],["Marca y modelo",mm(e)||"-"],["Nº de serie",e.serie||"-"],["De quién es",GRUPO_TXT[e.tipo]||e.tipo||"-"],["Color",e.color||"-"]]);
+    titulo(o.dev?"Datos de la devolución":"Datos de la entrega");
+    filas([["Fecha",fmt(o.fecha)],[o.dev?"Lo devuelve":"Lo recibe",o.per],[o.dev?"Se guarda en":"Destino",o.dest],["Material",["Dispositivo",...o.mat].join(", ")],["Estado / observaciones",o.obs||"-"]]);
+    const txt = o.dev
+      ? `${o.per} devuelve al centro el dispositivo descrito, con el material indicado, en la fecha señalada. La coordinación TIC deja constancia de la devolución.`
+      : `${o.per} recibe el dispositivo descrito, con el material indicado, en buen estado de funcionamiento salvo lo anotado en observaciones. Se compromete a hacer un uso adecuado y exclusivamente docente del equipo, a custodiarlo, a comunicar cualquier avería o incidencia a la coordinación TIC y a devolverlo al centro cuando se le solicite o al finalizar su destino en el centro.`;
+    doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(...TXT);
+    const l=doc.splitTextToSize(T(txt), sw); doc.text(l, M, y); y+=l.length*5+6;
+    doc.text(T("Monforte de Lemos, "+fechaLarga), W-M, y, {align:"right"}); y+=8;
+    const bw=(sw-12)/2, bx2=M+bw+12, bh=34;
+    doc.setDrawColor(200,198,210); doc.setLineWidth(0.2);
+    doc.roundedRect(M,y,bw,bh,2,2); doc.roundedRect(bx2,y,bw,bh,2,2);
+    try{ const c=$("#ent-firma"), ratio=c.height/c.width; let iw=bw-8, ih=iw*ratio; if(ih>bh-6){ ih=bh-6; iw=ih/ratio; } doc.addImage(o.firma,"PNG",M+(bw-iw)/2,y+3,iw,ih); }catch(_){}
+    y+=bh+5;
+    doc.setFont("helvetica","bold"); doc.setFontSize(9.5); doc.setTextColor(...TXT);
+    doc.text(T(`${o.dev?"Devuelve":"Recibe"}: ${o.per}`), M, y);
+    doc.text(T(`${o.dev?"Recibe":"Entrega"}: Oscar González`), bx2, y);
+    doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(...GRI);
+    doc.text(T("Coordinador TIC · EDIXGAL"), bx2, y+4.5);
+    doc.setFontSize(7.5); doc.text(T((o.dev?"Hoja de devolución":"Hoja de entrega")+" · CEIP Plurilingüe de Monforte de Lemos · "+e.serie), M, 289);
+    const nombre=(o.dev?"devolucion-":"entrega-")+(e.serie||e._id).replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"")+"-"+o.fecha+".pdf";
+    await guardarPdf(doc, nombre);
+    return nombre;
+  }
+
+  /* ---------- menú inferior: sección activa ---------- */
+  (function(){
+    const btns=[...document.querySelectorAll(".mnav [data-go]")];
+    const secs=btns.map(b=>{ const h=document.getElementById(b.dataset.go); return {b, s:h&&h.closest("section")}; }).filter(x=>x.s);
+    let raf=0;
+    const upd=()=>{ raf=0; const lim=window.innerHeight*0.35; let cur=secs[0];
+      secs.forEach(x=>{ if(x.s.getBoundingClientRect().top<=lim) cur=x; });
+      if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4) cur=secs[secs.length-1];
+      btns.forEach(b=>b.classList.toggle("on", cur&&b===cur.b)); };
+    window.addEventListener("scroll",()=>{ if(!raf) raf=requestAnimationFrame(upd); },{passive:true});
+    window.addEventListener("resize",()=>{ if(!raf) raf=requestAnimationFrame(upd); });
+    setTimeout(upd,300);
+  })();
 
   /* Abrir un portátil desde su QR (enlace terminado en #e07, por ejemplo) */
   let hashDone=false;
@@ -3479,13 +3822,7 @@ var qrcode = function() {
     if(!db){ showMsg("err","No hay conexión con el registro. Abre esta página desde claude.ai con tu cuenta para guardar."); return; }
     saving=true; $("#b-save").disabled=true; showMsg();
     try{
-      await db.collection("movimientos").add({
-        equipoId:e._id, serie:e.serie, modelo:mm(e), fecha, desde:e.ubicacion||"", hacia:aula,
-        profesor:prof, nota, creado:new Date().toISOString()
-      });
-      const upd={ubicacion:aula, tiene:aula==="Armario"?"":prof, fechaCambio:fecha};
-      if(aula==="Armario") upd.asignado="";
-      await db.doc("equipos/"+e._id).update(upd);
+      await moverEquipo(e, aula, prof, nota, fecha);
       showMsg("ok",`Guardado: ${e.serie} pasa de ${e.ubicacion||"—"} a ${aula}${prof?" (lo recoge "+prof+")":""}.`);
       document.querySelectorAll('#f-prof input,#f-aula input').forEach(i=>i.checked=false);
       $("#f-nota").value=""; $("#f-equipo").value=""; renderCurrent(); renderTable();
