@@ -145,6 +145,9 @@ tbody tr.row.sel td{background:var(--mint-soft)}
 .qrbox{display:flex;gap:12px;align-items:center;margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px}
 .qrbox .qr{background:#fff;padding:6px;border-radius:6px;line-height:0;flex:none}
 .qrbox .qr img{width:120px;height:120px;image-rendering:pixelated}
+.qrbox{align-items:flex-start;flex-wrap:wrap}
+.qrside{display:flex;flex-direction:column;gap:6px;flex:1;min-width:180px}
+.qrside .btn.primary{position:static;box-shadow:none;font-size:.95rem;padding:10px 12px}
 .kind{display:inline-block;font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--slate);background:var(--surface-2);border-radius:5px;padding:1px 6px;margin-right:6px;vertical-align:1px}
 .empty{padding:18px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}
 details summary{cursor:pointer;color:var(--slate);font-weight:600}
@@ -2779,6 +2782,7 @@ var qrcode = function() {
 }));
 
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 (function(){
   const $ = s => document.querySelector(s);
@@ -2856,7 +2860,7 @@ var qrcode = function() {
     box.innerHTML = `Ahora está en <strong>${esc(e.ubicacion)}</strong>`+
       (e.tiene?` · lo tiene <strong>${esc(e.tiene)}</strong>`:"")+
       (e.observaciones?`<br><span class="muted">${esc(e.observaciones)}</span>`:"")+
-      `<div class="cur-actions"><button type="button" class="btn link small" id="b-edit">${e.marca||e.modelo?"Editar datos":"Añadir marca y modelo"}</button><button type="button" class="btn link small" id="b-qr">${qrOpen?"Ocultar":"Ver"} código QR</button></div>`+
+      `<div class="cur-actions"><button type="button" class="btn link small" id="b-edit">${e.marca||e.modelo?"Editar datos":"Añadir marca y modelo"}</button><button type="button" class="btn link small" id="b-qr">${qrOpen?"Ocultar etiqueta QR":"Imprimir etiqueta QR"}</button></div>`+
       (qrOpen?qrHtml(e):"");
     markCurrentChip(e.ubicacion);
   }
@@ -2864,10 +2868,67 @@ var qrcode = function() {
   function qrHtml(e){
     if(typeof window.qrcode!=="function") return '<div class="qrbox small muted">No se pudo cargar el generador de QR. Revisa la conexión a internet.</div>';
     const q=window.qrcode(0,"M"); q.addData(APP_URL+"#"+e._id); q.make();
-    return `<div class="qrbox"><div class="qr"><img src="${q.createDataURL(4,0)}" alt="Código QR de ${esc(e.serie)}"></div><div class="small">Al escanearlo se abre esta página con <strong>${esc(e.serie)}</strong> ya elegido. Haz una captura para imprimirlo y pegarlo en el dispositivo.</div></div>`;
+    let pos=1; try{ pos=parseInt(localStorage.getItem("ceip-tic-pos"),10)||1; }catch(_){}
+    const opts=Array.from({length:24},(_,i)=>`<option value="${i+1}"${i+1===pos?" selected":""}>${i+1} · fila ${Math.floor(i/3)+1}, columna ${i%3+1}</option>`).join("");
+    return `<div class="qrbox"><div class="qr"><img src="${q.createDataURL(4,0)}" alt="Código QR de ${esc(e.serie)}"></div>
+      <div class="qrside"><div class="small">Etiqueta de 70 × 37 mm para hojas A4 de 24 etiquetas (3 × 8).</div>
+      <label class="small" for="qr-pos">Posición en la hoja</label>
+      <select id="qr-pos">${opts}</select>
+      <button type="button" class="btn primary small" id="b-pdf">Descargar PDF para imprimir</button>
+      <div class="small muted" id="qr-msg">Imprime a tamaño real (100 %).</div></div></div>`;
+  }
+
+  /* ---------- PDF de la etiqueta (70 × 37 mm en A4, 3 × 8) ---------- */
+  const TIPO_ETQ = {"Profesor EDIXGAL":["PROFESOR · EDIXGAL",[90,86,112]],"Aula EDIXGAL":["AULA · EDIXGAL",[46,125,87]],"PT/AL":["PT / AL",[227,77,97]],"Otro":["CENTRO",[138,134,152]]};
+  const pdfTxt = t => (t||"").toString().replace(/…/g,"...").replace(/[^\x20-\x7E\xA0-\xFF]/g,"");
+  async function etiquetaPdf(e, pos){
+    if(!window.jspdf){ throw new Error("nolib"); }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({unit:"mm", format:"a4", orientation:"portrait"});
+    const i=pos-1, x=(i%3)*70, y=Math.floor(i/3)*37;
+    const [tipoTxt, col] = TIPO_ETQ[e.tipo] || TIPO_ETQ["Otro"];
+    doc.setDrawColor(214,212,222); doc.setLineWidth(0.15); doc.setLineDashPattern([1,1],0); doc.rect(x,y,70,37); doc.setLineDashPattern([],0);
+    doc.setFillColor(...col); doc.rect(x,y,1.6,37,"F");
+    // QR
+    const q=window.qrcode(0,"M"); q.addData(APP_URL+"#"+e._id); q.make();
+    const n=q.getModuleCount(), size=26, m=size/n, qx=x+4, qy=y+5.5;
+    doc.setFillColor(47,44,64);
+    for(let r=0;r<n;r++) for(let c=0;c<n;c++) if(q.isDark(r,c)) doc.rect(qx+c*m, qy+r*m, m+0.01, m+0.01, "F");
+    // Texto
+    const tx=x+32.8, w=34.5; let ty=y+4.2;
+    const logo=document.querySelector(".logo img");
+    if(logo && logo.src.startsWith("data:image/png")){ try{ doc.addImage(logo.src,"PNG",tx,ty,7.9,5.5); }catch(_){} }
+    doc.setFont("helvetica","bold"); doc.setFontSize(6); doc.setTextColor(...col);
+    doc.text(doc.splitTextToSize(pdfTxt(tipoTxt), w-9.5), tx+9.3, ty+2.4);
+    ty+=8.2;
+    doc.setFont("courier","bold"); doc.setFontSize(8.6); doc.setTextColor(47,44,64);
+    const serie=doc.splitTextToSize(pdfTxt(e.serie), w).slice(0,2);
+    doc.text(serie, tx, ty); ty+=serie.length*3.3;
+    doc.setFont("helvetica","normal"); doc.setFontSize(7.4); doc.setTextColor(90,86,112);
+    const clase=claseDe(e);
+    const linea1=[clase!=="Portátil"?clase:"", mm(e)].filter(Boolean).join(" · ") || clase;
+    const l1=doc.splitTextToSize(pdfTxt(linea1), w).slice(0,2); doc.text(l1, tx, ty); ty+=l1.length*2.9;
+    const extra=[e.color?"Color: "+e.color:"", e.asignado?"Asignado: "+e.asignado:""].filter(Boolean).join(" · ");
+    if(extra){ doc.setFontSize(6.4); const l2=doc.splitTextToSize(pdfTxt(extra), w).slice(0,2); doc.text(l2, tx, ty); ty+=l2.length*2.6; }
+    doc.setFontSize(5.8); doc.setTextColor(138,134,152);
+    doc.text(["Escanea para registrar","a dónde va este dispositivo"].map(pdfTxt), tx, Math.max(ty+0.6, y+31.2));
+    const nombre = "etiqueta-"+(e.serie||e._id).replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"")+".pdf";
+    const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
+    if(dl){ await dl.save({filename:nombre, data:doc.output("blob")}); }
+    else doc.save(nombre);
+    return nombre;
   }
   $("#f-current").addEventListener("click",ev=>{
     if(ev.target.closest("#b-qr")){ qrOpen=!qrOpen; renderCurrent(); }
+    else if(ev.target.closest("#b-pdf")){
+      const e=equipos.find(x=>x._id===$("#f-equipo").value); if(!e) return;
+      const pos=parseInt($("#qr-pos").value,10)||1, msg=$("#qr-msg");
+      etiquetaPdf(e,pos).then(nombre=>{
+        msg.textContent=`PDF listo (${nombre}). Imprímelo a tamaño real (100 %).`;
+        const sig=pos>=24?1:pos+1; try{ localStorage.setItem("ceip-tic-pos",String(sig)); }catch(_){}
+        $("#qr-pos").value=String(sig);
+      }).catch(err=>{ msg.textContent = err&&err.message==="nolib" ? "No se pudo cargar el generador de PDF. Revisa la conexión a internet." : "No se pudo descargar el PDF."; });
+    }
     else if(ev.target.closest("#b-edit")){ const e=equipos.find(x=>x._id===$("#f-equipo").value); if(e) openAlta(e); }
   });
   function markCurrentChip(loc){
