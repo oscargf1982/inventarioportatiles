@@ -299,7 +299,7 @@ section.panel{scroll-margin-top:64px}
       </div>
       <div class="tablebox">
         <table>
-          <thead><tr><th>Nº de serie</th><th>Modelo</th><th>Color</th><th>Ubicación</th><th>Lo tiene / asignado</th><th>Último cambio</th></tr></thead>
+          <thead><tr><th>Nº de serie</th><th>Marca y modelo</th><th>Color</th><th>Ubicación</th><th>Lo tiene / asignado</th><th>Último cambio</th></tr></thead>
           <tbody id="tb"><tr><td colspan="6" class="muted">Cargando inventario…</td></tr></tbody>
         </table>
       </div>
@@ -318,10 +318,12 @@ section.panel{scroll-margin-top:64px}
         <div class="chips" id="fa-clase"></div>
         <input type="text" id="fa-clase-otro" placeholder="¿Qué es? (ej.: cámara de documentos, altavoz…)" hidden>
       </div>
+      <div class="field"><label for="fa-serie">Nº de serie o identificador</label><input type="text" id="fa-serie" placeholder="Ej.: R9WT30ABCDE o «Tablet 05»"></div>
       <div class="fa-two">
-        <div class="field"><label for="fa-serie">Nº de serie o identificador</label><input type="text" id="fa-serie" placeholder="Ej.: R9WT30ABCDE o «Tablet 05»"></div>
-        <div class="field"><label for="fa-modelo">Marca y modelo <span class="muted">(opcional)</span></label><input type="text" id="fa-modelo" placeholder="Ej.: Samsung Galaxy Tab A8"></div>
+        <div class="field"><label for="fa-marca">Marca <span class="muted">(opcional)</span></label><input type="text" id="fa-marca" list="dl-marcas" autocomplete="off" placeholder="Ej.: HP, ASUS, Samsung…"></div>
+        <div class="field"><label for="fa-modelo">Modelo <span class="muted">(opcional)</span></label><input type="text" id="fa-modelo" placeholder="Ej.: EliteBook 650"></div>
       </div>
+      <datalist id="dl-marcas"></datalist>
       <div class="field" role="group" aria-labelledby="l-grupo">
         <span class="lbl" id="l-grupo">¿De quién es?</span>
         <div class="chips" id="fa-grupo"></div>
@@ -2786,6 +2788,7 @@ var qrcode = function() {
   const CLASES = ["Portátil","Tablet","Proyector","Pizarra digital","Otro"];
   const APP_URL = "https://oscargf1982.github.io/inventarioportatiles/";
   const claseDe = e => e.clase || "Portátil";
+  const mm = e => [e.marca, e.modelo].filter(Boolean).join(" ");
   function grupos(list){
     const out=[];
     TIPOS.forEach(t=>{ const g=list.filter(e=>claseDe(e)==="Portátil"&&e.tipo===t); if(g.length) out.push({label:TIPO_TXT[t],items:g}); });
@@ -2824,7 +2827,7 @@ var qrcode = function() {
       `<div class="stat"><b>${movs.length}</b><span class="muted">movimientos anotados</span></div>`;
   }
 
-  function label(e){ const c=claseDe(e); return `${c!=="Portátil"?c+" · ":""}${e.serie} · ${e.modelo||GRUPO_TXT[e.tipo]||e.tipo||c}`; }
+  function label(e){ const c=claseDe(e); return `${c!=="Portátil"?c+" · ":""}${e.serie} · ${mm(e)||GRUPO_TXT[e.tipo]||e.tipo||c}`; }
 
   function renderSelects(){
     const sel = $("#f-equipo"), cur = sel.value, hf=$("#hf"), hcur=hf.value;
@@ -2853,7 +2856,7 @@ var qrcode = function() {
     box.innerHTML = `Ahora está en <strong>${esc(e.ubicacion)}</strong>`+
       (e.tiene?` · lo tiene <strong>${esc(e.tiene)}</strong>`:"")+
       (e.observaciones?`<br><span class="muted">${esc(e.observaciones)}</span>`:"")+
-      `<div class="cur-actions"><button type="button" class="btn link small" id="b-edit">Editar datos</button><button type="button" class="btn link small" id="b-qr">${qrOpen?"Ocultar":"Ver"} código QR</button></div>`+
+      `<div class="cur-actions"><button type="button" class="btn link small" id="b-edit">${e.marca||e.modelo?"Editar datos":"Añadir marca y modelo"}</button><button type="button" class="btn link small" id="b-qr">${qrOpen?"Ocultar":"Ver"} código QR</button></div>`+
       (qrOpen?qrHtml(e):"");
     markCurrentChip(e.ubicacion);
   }
@@ -2891,14 +2894,14 @@ var qrcode = function() {
     const fc=$("#fc").value;
     const vis=equipos.filter(e=>(!fl||e.ubicacion===fl) &&
       (!fc || (fc==="otros" ? !["Portátil","Tablet"].includes(claseDe(e)) : claseDe(e)===fc)) &&
-      (!q || norm([claseDe(e),e.serie,e.modelo,e.color,e.ubicacion,e.tiene,e.asignado,e.observaciones].join(" ")).includes(q)));
+      (!q || norm([claseDe(e),e.serie,e.marca,e.modelo,e.color,e.ubicacion,e.tiene,e.asignado,e.observaciones].join(" ")).includes(q)));
     let html="";
     grupos(vis).forEach(({label:gl,items:g})=>{
       html += `<tr class="group"><td colspan="6">${esc(gl)} · ${g.length}</td></tr>`;
       g.forEach(e=>{
         html += `<tr class="row${e._id===sel?" sel":""}" data-id="${esc(e._id)}" tabindex="0">
           <td class="c-serie"><span class="serie">${esc(e.serie)}</span>${e.observaciones?`<br><span class="flag">${esc(e.observaciones)}</span>`:""}</td>
-          <td class="small c-modelo${e.modelo||claseDe(e)!=="Portátil"?"":" is-empty"}">${claseDe(e)!=="Portátil"?`<span class="kind">${esc(claseDe(e))}</span>`:""}${esc(e.modelo||(claseDe(e)!=="Portátil"?"":"—"))}</td>
+          <td class="small c-modelo${mm(e)||claseDe(e)!=="Portátil"?"":" is-empty"}">${claseDe(e)!=="Portátil"?`<span class="kind">${esc(claseDe(e))}</span>`:""}${esc(mm(e)||(claseDe(e)!=="Portátil"?"":"—"))}</td>
           <td class="small c-color${e.color?"":" is-empty"}">${e.color?`<span class="sw"><i class="c-${norm(e.color)}"></i>${esc(e.color)}</span>`:'<span class="muted">—</span>'}</td>
           <td class="c-loc"><span class="loc ${locClass(e.ubicacion)}">${esc(e.ubicacion)}</span></td>
           <td class="small c-quien${e.tiene||e.asignado?"":" is-empty"}">${e.tiene?esc(e.tiene):""}${e.asignado&&e.asignado!==e.tiene?`${e.tiene?"<br>":""}<span class="muted">Asignado: ${esc(e.asignado)}</span>`:""}${!e.tiene&&!e.asignado?'<span class="muted">—</span>':""}</td>
@@ -2940,7 +2943,8 @@ var qrcode = function() {
     $("#fa-clase-otro").hidden = known; $("#fa-clase-otro").value = known?"":clase;
     radios($("#fa-grupo"),"fagrupo",TIPOS, e?e.tipo:"Otro", v=>esc(GRUPO_TXT[v]));
     radios($("#fa-color"),"facolor",COLORES, e?e.color:"", v=>`<span class="sw"><i class="c-${norm(v)}"></i>${v}</span>`);
-    $("#fa-serie").value = e?e.serie:""; $("#fa-modelo").value = e?(e.modelo||""):""; $("#fa-obs").value = e?(e.observaciones||""):"";
+    $("#fa-serie").value = e?e.serie:""; $("#fa-modelo").value = e?(e.modelo||""):""; $("#fa-marca").value = e?(e.marca||""):"";
+    $("#dl-marcas").innerHTML = sortEs([...new Set(["HP","ASUS","Acer","Lenovo","Dell","Samsung","Apple","Huawei","Epson","BenQ","Promethean","Smart",...equipos.map(x=>x.marca).filter(Boolean)])]).map(v=>`<option value="${esc(v)}">`).join(""); $("#fa-obs").value = e?(e.observaciones||""):"";
     const ubics=[...new Set([...(listas.aulas||[]), ...(e&&e.ubicacion?[e.ubicacion]:[])])];
     $("#fa-ubic").innerHTML = ubics.map(v=>`<option>${esc(v)}</option>`).join(""); $("#fa-ubic").value = e?e.ubicacion:"Armario";
     const profs=[...new Set([...(listas.profesores||[]), ...(e&&e.asignado?[e.asignado]:[])])];
@@ -2974,7 +2978,7 @@ var qrcode = function() {
     const dup=equipos.find(x=>x._id!==editId && norm(x.serie)===norm(serie));
     if(dup){ faMsg("err",`Ya hay un dispositivo con ese número: ${dup.serie}.`); return; }
     const asig=$("#fa-asig").value, ubic=$("#fa-ubic").value||"Armario";
-    const data={clase, serie, modelo:$("#fa-modelo").value.trim(), tipo:picked("fagrupo")||"Otro", color:picked("facolor"), observaciones:$("#fa-obs").value.trim(), asignado:asig};
+    const data={clase, serie, marca:$("#fa-marca").value.trim(), modelo:$("#fa-modelo").value.trim(), tipo:picked("fagrupo")||"Otro", color:picked("facolor"), observaciones:$("#fa-obs").value.trim(), asignado:asig};
     faSaving=true; $("#fa-save").disabled=true;
     try{
       if(editId){
@@ -3072,7 +3076,7 @@ var qrcode = function() {
     saving=true; $("#b-save").disabled=true; showMsg();
     try{
       await db.collection("movimientos").add({
-        equipoId:e._id, serie:e.serie, modelo:e.modelo||"", fecha, desde:e.ubicacion||"", hacia:aula,
+        equipoId:e._id, serie:e.serie, modelo:mm(e), fecha, desde:e.ubicacion||"", hacia:aula,
         profesor:prof, nota, creado:new Date().toISOString()
       });
       const upd={ubicacion:aula, tiene:aula==="Armario"?"":prof, fechaCambio:fecha};
