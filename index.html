@@ -187,6 +187,7 @@ details summary{cursor:pointer;color:var(--slate);font-weight:600}
 .tag{display:inline-flex;align-items:center;gap:4px;background:var(--surface-2);border-radius:999px;padding:3px 4px 3px 10px;font-size:.88rem}
 .tag button{border:none;background:none;cursor:pointer;color:var(--muted);padding:0 6px;font-size:1rem;line-height:1}
 .tag button:hover{color:var(--coral)}
+.tag button.armed{color:#fff;background:var(--coral);border-radius:999px;font-size:.8rem;font-weight:600;padding:2px 8px}
 @media (prefers-reduced-motion:no-preference){.msg{animation:fade .25s ease}@keyframes fade{from{opacity:.3}to{opacity:1}}}
 
 /* Navegación y diseño para móvil */
@@ -504,7 +505,11 @@ body.modo-alu .prof-only{display:none!important}
       </div>
       <div class="fa-two">
         <div class="field"><label for="fa-ubic">¿Dónde está ahora?</label><select id="fa-ubic"></select></div>
-        <div class="field"><label for="fa-asig">Asignado a <span class="muted">(opcional)</span></label><select id="fa-asig"></select></div>
+        <div class="field"><label for="fa-asig">Asignado a <span class="muted">(opcional)</span></label><select id="fa-asig"></select>
+          <input type="text" id="fa-asig-otro" placeholder="Nombre e iniciales de los apellidos (p. ej. Luis A. G.)" hidden>
+          <details class="small" id="fa-prof-det"><summary>Quitar de la lista a profesorado que ya no está en el centro</summary>
+            <p class="small muted" style="margin:6px 0">Toca la × y después «¿Quitar?» para confirmar. Los equipos y movimientos ya guardados no cambian.</p>
+            <div class="listedit" id="fa-prof-list"></div></details></div>
       </div>
       <div class="field"><label for="fa-obs">Observaciones <span class="muted">(opcional)</span></label><input type="text" id="fa-obs" placeholder="Ej.: con funda, falta el cargador…"></div>
       <div id="fa-msg" aria-live="polite"></div>
@@ -3351,6 +3356,8 @@ var qrcode = function() {
     renderCurrent();
     const tags=(arr,key)=>arr.map(v=>`<span class="tag">${esc(v)}<button type="button" data-k="${key}" data-v="${esc(v)}" aria-label="Quitar ${esc(v)}">×</button></span>`).join("")||'<span class="muted small">Lista vacía</span>';
     $("#le-prof").innerHTML=tags(listas.profesores,"profesores");
+    $("#fa-prof-list").innerHTML=tags(listas.profesores,"profesores");
+    if(!$("#fa").hidden) rellenarAsig();
     $("#le-aula").innerHTML=tags(listas.aulas,"aulas");
   }
 
@@ -3415,8 +3422,7 @@ var qrcode = function() {
     $("#dl-marcas").innerHTML = sortEs([...new Set(["HP","ASUS","Acer","Lenovo","Dell","Samsung","Apple","Huawei","Epson","BenQ","Promethean","Smart",...equipos.map(x=>x.marca).filter(Boolean)])]).map(v=>`<option value="${esc(v)}">`).join(""); $("#fa-obs").value = e?(e.observaciones||""):"";
     const ubics=[...new Set([...(listas.aulas||[]), ...(e&&e.ubicacion?[e.ubicacion]:[])])];
     $("#fa-ubic").innerHTML = ubics.map(v=>`<option>${esc(v)}</option>`).join(""); $("#fa-ubic").value = e?e.ubicacion:"Armario";
-    const profs=[...new Set([...(listas.profesores||[]), ...(e&&e.asignado?[e.asignado]:[])])];
-    $("#fa-asig").innerHTML = '<option value="">Nadie</option>'+profs.map(v=>`<option>${esc(v)}</option>`).join(""); $("#fa-asig").value = e?(e.asignado||""):"";
+    rellenarAsig(e?(e.asignado||""):""); $("#fa-asig-otro").hidden=true; $("#fa-asig-otro").value=""; $("#fa-prof-det").open=false;
     $("#h-alta").textContent = e ? "Editar datos del dispositivo" : "Dar de alta un dispositivo";
     $("#fa-intro").textContent = e ? "Corrige lo que necesites. Los movimientos ya anotados no cambian." : "Rellena lo que sepas. Solo es obligatorio el número de serie o una etiqueta que lo identifique.";
     $("#fa-save").textContent = e ? "Guardar cambios" : "Dar de alta";
@@ -3424,6 +3430,14 @@ var qrcode = function() {
     $("#fa-msg").innerHTML=""; $("#fa").hidden=false; $("#b-alta-open").hidden=true;
     $("#alta").scrollIntoView({behavior:"smooth",block:"start"});
   }
+  function rellenarAsig(val){
+    const cur = val!==undefined ? val : $("#fa-asig").value;
+    const e = editId ? equipos.find(x=>x._id===editId) : null;
+    const profs=sortEs([...new Set([...(listas.profesores||[]), ...(e&&e.asignado?[e.asignado]:[])])]);
+    $("#fa-asig").innerHTML = '<option value="">Nadie</option>'+profs.map(v=>`<option>${esc(v)}</option>`).join("")+'<option value="__otro">Otro (añadir un profesor/a nuevo)…</option>';
+    $("#fa-asig").value = cur==="__otro" || profs.includes(cur) ? cur : "";
+  }
+  $("#fa-asig").addEventListener("change",()=>{ const o=$("#fa-asig").value==="__otro"; $("#fa-asig-otro").hidden=!o; if(o) $("#fa-asig-otro").focus(); });
   function closeAlta(){ $("#fa").hidden=true; $("#b-alta-open").hidden=false; editId=null; $("#h-alta").textContent="Dar de alta un dispositivo"; }
   function faMsg(k,t){ $("#fa-msg").innerHTML = t?`<div class="msg ${k}">${esc(t)}</div>`:""; }
   $("#b-alta-open").addEventListener("click",()=>openAlta(null));
@@ -3445,7 +3459,13 @@ var qrcode = function() {
     if(!db){ faMsg("err","No hay conexión con el registro."); return; }
     const dup=equipos.find(x=>x._id!==editId && norm(x.serie)===norm(serie));
     if(dup){ faMsg("err",`Ya hay un dispositivo con ese número: ${dup.serie}.`); return; }
-    const asig=$("#fa-asig").value, ubic=$("#fa-ubic").value||"Armario";
+    let asig=$("#fa-asig").value; const ubic=$("#fa-ubic").value||"Armario";
+    if(asig==="__otro"){
+      asig=$("#fa-asig-otro").value.trim().replace(/\s+/g," ");
+      if(!asig){ faMsg("err","Escribe el nombre del profesor/a nuevo o elige otra opción."); $("#fa-asig-otro").focus(); return; }
+      if(!listas.profesores.some(p=>norm(p)===norm(asig))){ listas.profesores=sortEs([...listas.profesores, asig]); renderChips(); await saveListas(); }
+      else asig=listas.profesores.find(p=>norm(p)===norm(asig));
+    }
     const data={clase, serie, marca:$("#fa-marca").value.trim(), modelo:$("#fa-modelo").value.trim(), tipo:picked("fagrupo")||"Otro", color:picked("facolor"), observaciones:$("#fa-obs").value.trim(), asignado:asig};
     faSaving=true; $("#fa-save").disabled=true;
     try{
@@ -4278,10 +4298,19 @@ var qrcode = function() {
   $("#b-aula-add").addEventListener("click",()=>addTo("aulas","#f-aula-new","aula"));
   $("#f-prof-new").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addTo("profesores","#f-prof-new","prof");}});
   $("#f-aula-new").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addTo("aulas","#f-aula-new","aula");}});
-  document.querySelector("details").addEventListener("click",async ev=>{
+  let tagArmed=null;
+  async function quitarDeLista(ev){
     const b=ev.target.closest("button[data-k]"); if(!b) return;
+    ev.preventDefault();
+    const key=b.dataset.k+"|"+b.dataset.v;
+    if(tagArmed!==key){ tagArmed=key; document.querySelectorAll("button[data-k].armed").forEach(x=>{ x.classList.remove("armed"); x.textContent="×"; });
+      document.querySelectorAll(`button[data-k="${b.dataset.k}"]`).forEach(x=>{ if(x.dataset.v===b.dataset.v){ x.classList.add("armed"); x.textContent="¿Quitar?"; } });
+      setTimeout(()=>{ if(tagArmed===key){ tagArmed=null; renderChips(); } },4000); return; }
+    tagArmed=null;
     listas[b.dataset.k]=listas[b.dataset.k].filter(x=>x!==b.dataset.v); renderChips(); await saveListas();
-  });
+  }
+  document.querySelector("details").addEventListener("click",quitarDeLista);
+  $("#fa-prof-list").addEventListener("click",quitarDeLista);
 
   $("#hist").addEventListener("click",async ev=>{
     const d=ev.target.closest("[data-del]"), y=ev.target.closest("[data-del-yes]"), n=ev.target.closest("[data-del-no]");
