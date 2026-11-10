@@ -327,6 +327,7 @@ body.modo-alu .prof-only{display:none!important}
     <button type="button" class="alu-only" data-go="ha-form"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg><span>Registrar</span></button>
     <button type="button" class="alu-only" data-go="ha-inv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg><span>Equipos</span></button>
     <button type="button" class="scanbtn" data-scan><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 8h3v3H8zM13 13h3v3h-3zM13 8h3M8 16h3"/></svg><span>Escanear</span></button>
+    <button type="button" class="alu-only" data-go="ha-rev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9zM9 13l2 2 4-4"/></svg><span>Revista</span></button>
     <button type="button" class="prof-only" data-go="h-inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17v.5"/></svg><span>Incidencias</span></button>
     <button type="button" class="prof-only" data-go="h-hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg><span>Historial</span></button>
     <button type="button" class="alu-only" data-go="ha-hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg><span>Historial</span></button>
@@ -608,6 +609,14 @@ body.modo-alu .prof-only{display:none!important}
       <div class="row"><button type="button" class="btn primary" id="a-ed-save">Guardar</button><button type="button" class="btn" id="a-ed-del" hidden>Dar de baja</button></div>
     </div>
   </div>
+
+  <section class="panel alu-only" aria-labelledby="ha-rev" id="a-rev">
+    <div class="panel-head">
+      <h2 id="ha-rev">Pasar revista · alumnado</h2>
+      <span class="muted small" id="a-rev-sub"></span>
+    </div>
+    <div id="a-rev-body"><div class="empty">Cargando…</div></div>
+  </section>
 
   <section class="panel alu-only" aria-labelledby="ha-hist">
     <div class="panel-head">
@@ -3630,7 +3639,9 @@ var qrcode = function() {
   async function abrirScan(){
     $("#scan").hidden=false; scanLast="";
     const r=revActiva();
-    $("#scan-title").textContent = r&&revAula ? `Pasando revista en ${revAula}: escanea los equipos uno tras otro` : "Apunta al QR de la etiqueta";
+    const ar=aluRevActiva();
+    $("#scan-title").textContent = modo==="alu" ? (ar&&aluRevAula ? `Revista de alumnado en ${aluRevAula}: escanea los equipos uno tras otro` : "Apunta al QR de la etiqueta")
+      : (r&&revAula ? `Pasando revista en ${revAula}: escanea los equipos uno tras otro` : "Apunta al QR de la etiqueta");
     scanMsg("");
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ scanMsg("Este navegador no deja usar la cámara. Lee el QR con la cámara del móvil.","err"); return; }
     try{ scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false}); }
@@ -3674,11 +3685,21 @@ var qrcode = function() {
     const now=Date.now(); if(txt===scanLast && now-scanLastT<3000) return; scanLast=txt; scanLastT=now;
     const id=idDeQr(txt);
     if(!id){ scanMsg("Este QR no corresponde a ningún dispositivo del inventario.","err"); return; }
+    const ar=aluRevActiva();
+    if(modo==="alu" && ar && aluRevAula){
+      const ea=aluEq.find(x=>x._id===id);
+      if(!ea){ scanMsg("Este equipo es de profesorado o del centro, no de alumnado.","err"); return; }
+      try{ if(navigator.vibrate) navigator.vibrate(70); }catch(_){}
+      const ya=vistosDe(ar)[id];
+      aluMarcar(id, aluRevAula, false).catch(()=>scanMsg("No se pudo guardar. Revisa la conexión.","err"));
+      scanMsg(`${ya?"Ya estaba visto":"✓ Visto"}: ${ea.serie}${ea.alumno?" · "+ea.alumno:""} en ${aluRevAula}${ea.ubicacion!==aluRevAula?` (constaba en ${ea.ubicacion})`:""}. Escanea el siguiente.`,"ok");
+      return;
+    }
     if(aluEq.some(x=>x._id===id)){ try{ if(navigator.vibrate) navigator.vibrate(70); }catch(_){} cerrarScan(); aluAbrir(id, true); return; }
     const e=equipos.find(x=>x._id===id);
     try{ if(navigator.vibrate) navigator.vibrate(70); }catch(_){}
     const r=revActiva();
-    if(r && revAula){
+    if(r && revAula && modo!=="alu"){
       const ya=vistosDe(r)[id];
       marcarVisto(id, revAula, false).catch(()=>scanMsg("No se pudo guardar. Revisa la conexión.","err"));
       const fuera = e.ubicacion!==revAula ? ` (constaba en ${e.ubicacion})` : "";
@@ -3901,6 +3922,9 @@ var qrcode = function() {
       ev.push({f:i.fecha,o:i.creado||"",k:"Incidencia",c:"inc",t:esc(i.descripcion)});
       if(i.estado==="resuelta") ev.push({f:i.fechaResuelta,o:"",k:"Resuelta",c:"ok",t:esc(i.descripcion)+(i.solucion?" · "+esc(i.solucion):"")});
     });
+    aluRevs.forEach(r=>{ const v=vistosDe(r)[e._id];
+      if(v) ev.push({f:v.fecha||r.fin||r.inicio,o:"",k:"Revista",c:"ok",t:`Visto en ${esc(v.aula||"(sin aula)")}`});
+      else if(r.estado==="cerrada") ev.push({f:r.fin||r.inicio,o:"",k:"Revista",c:"inc",t:"No apareció al pasar revista"}); });
     return ev.sort((a,b)=>(b.f||"").localeCompare(a.f||"")||(b.o||"").localeCompare(a.o||""));
   }
   function aluCurrent(){
@@ -4090,10 +4114,80 @@ var qrcode = function() {
   });
   document.addEventListener("keydown",ev=>{ if(ev.key==="Escape" && !$("#a-ed").hidden) aluEdCerrar(); });
 
+  /* ---------- revista de alumnado ---------- */
+  let aluRevs=[], aluRevAula=lsg("ceip-tic-aularev-alu"), aluRevEnding=false, aluRevBusy=false;
+  const aluRevActiva = () => aluRevs.find(r=>r.estado==="abierta");
+  async function aluMarcar(id, aula, quitar){
+    const r=aluRevActiva(); if(!r||!db) return;
+    const v=Object.assign({}, vistosDe(r));
+    if(quitar) delete v[id]; else v[id]={aula, fecha:today()};
+    await db.doc("revistas/"+r._id).update({vistos:JSON.stringify(v)});
+  }
+  function aluItemRev(e, v, aula){
+    const visto=v[e._id], fuera=visto && visto.aula!==e.ubicacion;
+    return `<div class="rv-item ${visto?(fuera?"warn":"ok"):""}"><div class="what"><span class="serie">${esc(e.serie)}</span> <span class="small">${e.alumno?esc(e.alumno):'<span class="muted">sin alumno/a</span>'}</span>
+      ${fuera?`<br><span class="small">Visto en <strong>${esc(visto.aula)}</strong>; constaba en ${esc(e.ubicacion)}</span>`:""}
+      ${incAbiertas(e._id).length?`<br><span class="flag inc">Incidencia abierta</span>`:""}</div>
+      <button type="button" class="btn small ${visto?"seen":""}" data-arv="${esc(e._id)}" data-arv-aula="${esc(aula)}" aria-pressed="${visto?"true":"false"}">${visto?"✓ Visto":"Marcar visto"}</button></div>`;
+  }
+  function aluRevRender(){
+    const body=$("#a-rev-body"); if(!body) return;
+    const r=aluRevActiva();
+    if(!r){
+      const ult=aluRevs.filter(x=>x.estado==="cerrada").sort((a,b)=>(b.fin||"").localeCompare(a.fin||""))[0];
+      $("#a-rev-sub").textContent="";
+      let html='<p class="small muted" style="margin:0">Pasa por 5º A, 5º B, 6º A, 6º B y el almacén y marca cada equipo que encuentres, a mano o escaneando su QR. Al final verás cuáles faltan y cuáles están en otra aula.</p>';
+      if(ult){ const v=vistosDe(ult), falt=aluEq.filter(e=>!v[e._id]);
+        html+=`<div class="current">Última revista: <strong>${fmt(ult.inicio)}</strong>${ult.fin&&ult.fin!==ult.inicio?" – "+fmt(ult.fin):""} · ${Object.keys(v).length} vistos${falt.length?` · <strong>${falt.length} sin ver</strong>: ${falt.map(e=>esc(e.serie)).join(", ")}`:" · no faltó ninguno"}</div>`; }
+      html+='<div><button type="button" class="btn primary" id="arv-start" style="position:static;box-shadow:none">Empezar revista de alumnado</button></div>';
+      body.innerHTML=html; return;
+    }
+    const v=vistosDe(r), total=aluEq.length, n=aluEq.filter(e=>v[e._id]).length;
+    $("#a-rev-sub").textContent=`Empezada el ${fmt(r.inicio)}`;
+    if(aluRevAula && !A_UBIC.includes(aluRevAula)) aluRevAula="";
+    let html=`<div class="rv-prog"><strong>${n} de ${total}</strong> vistos<div class="rv-bar"><i style="width:${total?Math.round(n*100/total):0}%"></i></div></div>`;
+    html+=`<div class="field"><span class="lbl">¿Dónde estás?</span><div class="chips">${A_UBIC.map((a,i)=>{ const cnt=aluEq.filter(e=>e.ubicacion===a).length, seen=aluEq.filter(e=>e.ubicacion===a&&v[e._id]).length;
+      return `<label class="chip"><input type="radio" name="arvaula" value="${esc(a)}"${a===aluRevAula?" checked":""}><span>${esc(a)} <span class="muted small">${seen}/${cnt}</span></span></label>`; }).join("")}</div></div>`;
+    if(aluRevAula){
+      const aqui=aluEq.filter(e=>e.ubicacion===aluRevAula).sort(aluOrden);
+      const extra=aluEq.filter(e=>e.ubicacion!==aluRevAula && v[e._id] && v[e._id].aula===aluRevAula);
+      html+=`<div><button type="button" class="btn primary" data-scan style="position:static;box-shadow:none">Escanear QR de los equipos</button></div>`;
+      html+=`<div class="rv-sec"><h3>Deberían estar en ${esc(aluRevAula)} (${aqui.length})</h3>${aqui.length?`<div class="rv-list">${aqui.map(e=>aluItemRev(e,v,aluRevAula)).join("")}</div>`:'<div class="small muted">Según el inventario, aquí no hay ninguno.</div>'}</div>`;
+      if(extra.length) html+=`<div class="rv-sec"><h3>Encontrados aquí, pero constaban en otro sitio</h3><div class="rv-list">${extra.map(e=>aluItemRev(e,v,aluRevAula)).join("")}</div></div>`;
+      const otros=aluEq.filter(e=>e.ubicacion!==aluRevAula && !(v[e._id]&&v[e._id].aula===aluRevAula)).sort(aluOrden);
+      html+=`<div class="rv-sec"><span class="small">¿Hay aquí otro equipo de alumnado? Escanea su QR o elígelo:</span><div class="rv-add"><select id="arv-other"><option value="">Elige un equipo…</option>${otros.map(e=>`<option value="${esc(e._id)}">${esc(e.serie)}${e.alumno?" · "+esc(e.alumno):""} — ${esc(e.ubicacion)}</option>`).join("")}</select><button type="button" class="btn" id="arv-other-add">Marcar visto aquí</button></div></div>`;
+    }
+    const falt=aluEq.filter(e=>!v[e._id]).sort(aluOrden);
+    const fuera=aluEq.filter(e=>v[e._id] && v[e._id].aula!==e.ubicacion);
+    html+=`<div class="rv-sec"><h3>Resultado hasta ahora</h3>`;
+    if(fuera.length) html+=`<div class="small"><strong>${fuera.length} en otro sitio:</strong></div><div class="rv-list">${fuera.map(e=>`<div class="rv-item warn"><div class="what"><span class="serie">${esc(e.serie)}</span>${e.alumno?` <span class="small">${esc(e.alumno)}</span>`:""} <span class="small">en <strong>${esc(v[e._id].aula)}</strong> (constaba en ${esc(e.ubicacion)})</span></div><button type="button" class="btn small" data-arv-fix="${esc(e._id)}">Corregir ubicación</button></div>`).join("")}</div>`;
+    const porSitio={}; falt.forEach(e=>{ (porSitio[e.ubicacion]=porSitio[e.ubicacion]||[]).push(e); });
+    const ks=A_UBIC.filter(k=>porSitio[k]).concat(Object.keys(porSitio).filter(k=>!A_UBIC.includes(k)));
+    html+= falt.length ? `<details class="small"><summary>${falt.length} sin ver todavía: ${ks.map(k=>`${esc(k)} ${porSitio[k].length}`).join(" · ")}</summary>${ks.map(k=>`<div style="margin-top:6px"><strong>${esc(k)}:</strong> ${porSitio[k].map(e=>esc(e.serie)+(e.alumno?" ("+esc(e.alumno)+")":"")).join(", ")}</div>`).join("")}</details>` : '<div class="msg ok">Has visto todos los equipos de alumnado.</div>';
+    html+=`</div><div class="fa-actions">${aluRevEnding?`<span class="small">${falt.length?`Quedan ${falt.length} sin ver. `:""}¿Terminar la revista?</span><button type="button" class="btn primary small" id="arv-end-yes" style="position:static;box-shadow:none">Sí, terminar</button><button type="button" class="btn small" id="arv-end-no">Seguir</button>`:'<button type="button" class="btn" id="arv-end">Terminar revista</button>'}</div>`;
+    body.innerHTML=html;
+  }
+  $("#a-rev-body").addEventListener("change",ev=>{ if(ev.target.name==="arvaula"){ aluRevAula=ev.target.value; lss("ceip-tic-aularev-alu",aluRevAula); aluRevRender(); } });
+  $("#a-rev-body").addEventListener("click",async ev=>{
+    const t=ev.target; if(!db || aluRevBusy) return;
+    const run=async f=>{ aluRevBusy=true; try{ await f(); }catch(err){ $("#a-rev-sub").textContent = err&&err.code==="unavailable" ? "No se pudo guardar. Revisa la conexión." : "No se pudo guardar."; } finally{ aluRevBusy=false; } };
+    if(t.closest("#arv-start")){ await run(()=>db.doc("revistas/ra"+Date.now().toString(36)).set({inicio:today(), fin:"", estado:"abierta", vistos:"{}", ambito:"alumnado"})); }
+    else if(t.closest("[data-arv]")){ const b=t.closest("[data-arv]"), v=vistosDe(aluRevActiva());
+      await run(()=>aluMarcar(b.dataset.arv, b.dataset.arvAula, !!v[b.dataset.arv] && v[b.dataset.arv].aula===b.dataset.arvAula)); }
+    else if(t.closest("#arv-other-add")){ const id=$("#arv-other").value; if(id) await run(()=>aluMarcar(id, aluRevAula, false)); }
+    else if(t.closest("[data-arv-fix]")){ const id=t.closest("[data-arv-fix]").dataset.arvFix, e=aluEq.find(x=>x._id===id), v=vistosDe(aluRevActiva());
+      if(e&&v[id]) await run(()=>aluMover(e, v[id].aula, e.alumno, "Corregido al pasar revista")); }
+    else if(t.closest("#arv-end")){ aluRevEnding=true; aluRevRender(); }
+    else if(t.closest("#arv-end-no")){ aluRevEnding=false; aluRevRender(); }
+    else if(t.closest("#arv-end-yes")){ aluRevEnding=false; const r=aluRevActiva(); if(r) await run(()=>db.doc("revistas/"+r._id).update({estado:"cerrada", fin:today()})); }
+  });
+
   /* Abrir un portátil desde su QR (enlace terminado en #e07, por ejemplo) */
   let hashDone=false;
   function applyHash(){
     const id=(location.hash||"").slice(1);
+    if(aluEq.some(x=>x._id===id) && aluRevActiva() && aluRevAula){ hashDone=true; setModo("alu"); aluMarcar(id, aluRevAula, false).catch(()=>{}); const ea=aluEq.find(x=>x._id===id);
+      $("#a-rev-sub").textContent=`Escaneado: ${ea.serie} marcado como visto en ${aluRevAula}.`; try{ history.replaceState(null,"",location.pathname); }catch(_){} setTimeout(()=>$("#a-rev").scrollIntoView({behavior:"smooth",block:"start"}),50); return; }
     if(aluEq.some(x=>x._id===id)){ hashDone=true; aluAbrir(id, true); try{ history.replaceState(null,"",location.pathname); }catch(_){} return; }
     const e=equipos.find(x=>x._id===id); if(!e) return;
     hashDone=true;
@@ -4238,8 +4332,9 @@ var qrcode = function() {
       renderSummary(); renderHist(); if(fichaOpen) renderCurrent();
     },()=>{});
     db.collection("revistas").onSnapshot(s=>{
-      revistas=s.docs.map(d=>Object.assign({_id:d.id},d.data())); revLoaded=true;
-      renderRev();
+      const todas=s.docs.map(d=>Object.assign({_id:d.id},d.data()));
+      revistas=todas.filter(r=>r.ambito!=="alumnado"); aluRevs=todas.filter(r=>r.ambito==="alumnado"); revLoaded=true;
+      renderRev(); aluRevRender();
       if(!hashDone && equipos.length) applyHash();
     },()=>{ $("#rev-body").innerHTML='<div class="empty">No se pudo leer las revistas.</div>'; });
     db.collection("incidencias").onSnapshot(s=>{
@@ -4247,7 +4342,7 @@ var qrcode = function() {
       renderInc(); renderTable(); renderCurrent(); renderRev(); aluList(); aluCurrent();
     },()=>{});
     db.collection("alumnado").orderBy("orden").onSnapshot(s=>{
-      aluEq=s.docs.map(d=>Object.assign({_id:d.id},d.data())); aluLoaded=true; aluRender();
+      aluEq=s.docs.map(d=>Object.assign({_id:d.id},d.data())); aluLoaded=true; aluRender(); aluRevRender();
       if(!hashDone && aluEq.length) applyHash();
     },()=>{ $("#a-list").innerHTML='<div class="empty">No se pudieron leer los equipos de alumnado.</div>'; });
     db.collection("movalumnado").orderBy("creado","desc").limit(500).onSnapshot(s=>{
