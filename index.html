@@ -205,7 +205,7 @@ section.panel{scroll-margin-top:64px}
   h1{font-size:1.25rem}
   body{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))}
   section.panel{scroll-margin-top:calc(14px + env(safe-area-inset-top,0px))}
-  .mnav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:end;
+  .mnav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);align-items:end;
     padding:6px max(4px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 18px rgba(0,0,0,.07)}
   .mnav button{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;border:none;background:none;padding:4px 0;border-radius:10px;
     font-family:var(--f-body);font-size:.66rem;font-weight:600;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -252,6 +252,20 @@ section.panel{scroll-margin-top:64px}
   .confirm{justify-content:flex-start}
 }
 @media (max-width:720px){.fitem{grid-template-columns:minmax(0,1fr);gap:2px}}
+/* Selector Profesorado / Alumnado */
+.modo{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--surface-2);border-radius:12px;padding:4px;max-width:520px}
+.modo button{border:none;background:none;border-radius:9px;padding:10px 8px;font-family:var(--f-display);font-size:.95rem;color:var(--muted);cursor:pointer}
+.modo button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+body:not(.modo-alu) .alu-only{display:none!important}
+body.modo-alu .prof-only{display:none!important}
+.alist{display:flex;flex-direction:column;gap:6px}
+.agroup{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;padding:10px 2px 0}
+.aitem{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit}
+.aitem:hover{border-color:var(--slate)}
+.aitem.sel{background:var(--mint-soft);border-color:var(--mint)}
+.aitem .who{grid-column:1/-1;font-size:.92rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row2 input,#a-ed input,#a-ed select,#a-ed textarea{width:100%}
 /* Lector de QR */
 .scan{position:fixed;inset:0;z-index:60;background:#000;display:flex;flex-direction:column}
 .scan[hidden]{display:none!important}
@@ -307,13 +321,21 @@ section.panel{scroll-margin-top:64px}
   <div class="syncbar"><span id="sync" class="sync">Conectando con la hoja…</span><button type="button" class="btn link small" id="b-logout">Desconectar este móvil</button></div>
 
   <nav class="mnav" aria-label="Ir a">
-    <button type="button" data-go="h-form"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg><span>Registrar</span></button>
-    <button type="button" data-go="h-inv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg><span>Equipos</span></button>
-    <button type="button" data-go="h-rev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9zM9 13l2 2 4-4"/></svg><span>Revista</span></button>
+    <button type="button" class="prof-only" data-go="h-form"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg><span>Registrar</span></button>
+    <button type="button" class="prof-only" data-go="h-inv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg><span>Equipos</span></button>
+    <button type="button" class="prof-only" data-go="h-rev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9zM9 13l2 2 4-4"/></svg><span>Revista</span></button>
+    <button type="button" class="alu-only" data-go="ha-form"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg><span>Registrar</span></button>
+    <button type="button" class="alu-only" data-go="ha-inv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg><span>Equipos</span></button>
     <button type="button" class="scanbtn" data-scan><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 8h3v3H8zM13 13h3v3h-3zM13 8h3M8 16h3"/></svg><span>Escanear</span></button>
-    <button type="button" data-go="h-inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17v.5"/></svg><span>Incidencias</span></button>
-    <button type="button" data-go="h-hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg><span>Historial</span></button>
+    <button type="button" class="prof-only" data-go="h-inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17v.5"/></svg><span>Incidencias</span></button>
+    <button type="button" class="prof-only" data-go="h-hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg><span>Historial</span></button>
+    <button type="button" class="alu-only" data-go="ha-hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg><span>Historial</span></button>
   </nav>
+
+  <div class="modo" role="tablist" aria-label="Equipos de">
+    <button type="button" role="tab" data-modo="prof" aria-selected="true">Profesorado y centro</button>
+    <button type="button" role="tab" data-modo="alu" aria-selected="false">Alumnado</button>
+  </div>
 
   <div class="scan" id="scan" hidden role="dialog" aria-modal="true" aria-label="Escanear el QR de un dispositivo">
     <video id="scan-v" playsinline muted autoplay></video>
@@ -351,11 +373,11 @@ section.panel{scroll-margin-top:64px}
     </div>
   </div>
 
-  <div class="summary" id="summary" aria-live="polite">
+  <div class="summary prof-only" id="summary" aria-live="polite">
     <div class="stat"><b>–</b><span class="muted">Cargando inventario…</span></div>
   </div>
 
-  <div class="grid">
+  <div class="grid prof-only">
     <section class="panel" aria-labelledby="h-form">
       <div class="panel-head"><h2 id="h-form">Registrar un movimiento</h2></div>
       <form id="form" novalidate>
@@ -436,7 +458,7 @@ section.panel{scroll-margin-top:64px}
     </section>
   </div>
 
-  <section class="panel" aria-labelledby="h-rev" id="rev">
+  <section class="panel prof-only" aria-labelledby="h-rev" id="rev">
     <div class="panel-head">
       <h2 id="h-rev">Pasar revista</h2>
       <span class="muted small" id="rev-sub"></span>
@@ -444,7 +466,7 @@ section.panel{scroll-margin-top:64px}
     <div id="rev-body"><div class="empty">Cargando…</div></div>
   </section>
 
-  <section class="panel" aria-labelledby="h-inc" id="inc">
+  <section class="panel prof-only" aria-labelledby="h-inc" id="inc">
     <div class="panel-head">
       <h2 id="h-inc">Incidencias</h2>
       <div class="filters"><button type="button" class="btn small" id="inc-copy">Copiar las abiertas</button><button type="button" class="btn small" id="inc-toggle">Ver resueltas</button></div>
@@ -453,7 +475,7 @@ section.panel{scroll-margin-top:64px}
     <div class="hist" id="inc-list"><div class="empty">No hay incidencias abiertas.</div></div>
   </section>
 
-  <section class="panel" aria-labelledby="h-alta" id="alta">
+  <section class="panel prof-only" aria-labelledby="h-alta" id="alta">
     <div class="panel-head">
       <h2 id="h-alta">Dar de alta un dispositivo</h2>
       <button type="button" class="btn" id="b-alta-open">Añadir tablet u otro dispositivo</button>
@@ -493,12 +515,106 @@ section.panel{scroll-margin-top:64px}
     </form>
   </section>
 
-  <section class="panel" aria-labelledby="h-hist">
+  <section class="panel prof-only" aria-labelledby="h-hist">
     <div class="panel-head">
       <h2 id="h-hist">Historial de movimientos</h2>
       <div class="filters"><select id="hf" aria-label="Filtrar historial por dispositivo"><option value="">Todos los dispositivos</option></select></div>
     </div>
     <div class="hist" id="hist"><div class="empty">Aún no hay movimientos. Cuando guardes el primero aparecerá aquí, con la fecha, de dónde salió el dispositivo y a dónde fue.</div></div>
+  </section>
+
+  <!-- ================= ALUMNADO ================= -->
+  <div class="summary alu-only" id="a-summary" aria-live="polite"></div>
+  <div class="grid alu-only">
+    <section class="panel" aria-labelledby="ha-form">
+      <div class="panel-head"><h2 id="ha-form">Cambiar de sitio o de alumno</h2></div>
+      <form id="a-form" novalidate>
+        <div class="field">
+          <label for="a-equipo"><span class="step">1</span>Equipo de alumnado</label>
+          <select id="a-equipo"><option value="">Elige un equipo…</option></select>
+          <div class="current" id="a-current" hidden></div>
+        </div>
+        <div class="field">
+          <label for="a-fecha"><span class="step">2</span>Fecha</label>
+          <input type="date" id="a-fecha">
+        </div>
+        <div class="field" role="group" aria-labelledby="la-aula">
+          <span class="lbl" id="la-aula"><span class="step">3</span>¿Dónde va a estar?</span>
+          <div class="chips" id="a-aula"></div>
+        </div>
+        <div class="field" id="a-alu-field">
+          <label for="a-alumno"><span class="step">4</span>Alumno/a <span class="muted">(nombre e iniciales de los apellidos)</span></label>
+          <input type="text" id="a-alumno" list="a-alumnos" autocomplete="off" placeholder="Ej.: Lucía P. R.">
+          <datalist id="a-alumnos"></datalist>
+          <span class="small muted">Déjalo en blanco si en el aula no lo tiene nadie asignado.</span>
+        </div>
+        <div class="field">
+          <label for="a-nota">Observaciones <span class="muted">(opcional)</span></label>
+          <textarea id="a-nota" placeholder="Ej.: cambio de equipo por avería, sin cargador…"></textarea>
+        </div>
+        <div id="a-msg" aria-live="polite"></div>
+        <button class="btn primary" type="submit" id="a-save">Guardar cambio</button>
+      </form>
+    </section>
+
+    <section class="panel" aria-labelledby="ha-inv">
+      <div class="panel-head">
+        <h2 id="ha-inv">Equipos de alumnado</h2>
+        <span class="muted small">Toca un equipo para cambiarlo de sitio o de alumno</span>
+      </div>
+      <div class="filters">
+        <button type="button" class="btn small" id="a-b-add">Añadir equipos</button>
+        <button type="button" class="btn small" id="a-b-lote">Marca, modelo y color en lote</button>
+        <button type="button" class="btn small" id="a-b-etq">Imprimir etiquetas</button>
+        <button type="button" class="btn small" id="a-b-csv">Descargar listado (CSV)</button>
+      </div>
+      <div class="selbar" id="a-etqbar" hidden>
+        <div class="small">Etiquetas de los <strong id="a-etq-n">0</strong> equipos que se ven en la lista (usa el filtro para elegir un aula).</div>
+        <div class="filters">
+          <select id="a-etq-pos" aria-label="Primera posición libre en la hoja"></select>
+          <button type="button" class="btn primary small" id="a-etq-pdf" style="position:static;box-shadow:none">Descargar PDF</button>
+          <button type="button" class="btn small" id="a-etq-x">Cancelar</button>
+        </div>
+        <div class="small muted" id="a-etq-msg"></div>
+      </div>
+      <div class="filters">
+        <input type="text" id="a-q" placeholder="Buscar por nº de serie o alumno/a…" aria-label="Buscar">
+        <select id="a-fl" aria-label="Filtrar por ubicación"><option value="">Todas las ubicaciones</option></select>
+      </div>
+      <div id="a-list"><div class="empty">Cargando equipos de alumnado…</div></div>
+    </section>
+  </div>
+
+  <div class="sheet" id="a-ed" hidden role="dialog" aria-modal="true" aria-labelledby="a-ed-h">
+    <div class="sheet-box">
+      <div class="panel-head"><h2 id="a-ed-h">Añadir equipos de alumnado</h2><button type="button" class="btn small" id="a-ed-x">Cerrar</button></div>
+      <div id="a-ed-add">
+        <label class="small" for="a-ed-series"><strong>Números de serie</strong> <span class="muted">(uno por línea)</span></label>
+        <textarea id="a-ed-series" rows="6" placeholder="5CD1234ABC&#10;5CD1234ABD&#10;…"></textarea>
+      </div>
+      <div id="a-ed-lote" class="small" hidden></div>
+      <div id="a-ed-one" hidden>
+        <label class="small" for="a-ed-serie"><strong>Nº de serie</strong></label>
+        <input type="text" id="a-ed-serie">
+      </div>
+      <div class="row2">
+        <div><label class="small" for="a-ed-marca"><strong>Marca</strong></label><input type="text" id="a-ed-marca" placeholder="Ej.: HP"></div>
+        <div><label class="small" for="a-ed-modelo"><strong>Modelo</strong></label><input type="text" id="a-ed-modelo" placeholder="Ej.: ProBook 450"></div>
+      </div>
+      <div id="a-ed-ubic-w"><label class="small" for="a-ed-ubic"><strong>Dónde están ahora</strong></label><select id="a-ed-ubic"></select></div>
+      <div><label class="small" for="a-ed-color"><strong>Color</strong></label><select id="a-ed-color"><option value="">Sin indicar</option><option>Negro</option><option>Gris</option><option>Rojo</option><option>Otro</option></select></div>
+      <div><label class="small" for="a-ed-obs"><strong>Observaciones</strong> <span class="muted">(opcional)</span></label><input type="text" id="a-ed-obs"></div>
+      <div id="a-ed-msg" aria-live="polite"></div>
+      <div class="row"><button type="button" class="btn primary" id="a-ed-save">Guardar</button><button type="button" class="btn" id="a-ed-del" hidden>Dar de baja</button></div>
+    </div>
+  </div>
+
+  <section class="panel alu-only" aria-labelledby="ha-hist">
+    <div class="panel-head">
+      <h2 id="ha-hist">Historial de alumnado</h2>
+      <div class="filters"><select id="a-hf" aria-label="Filtrar historial por equipo"><option value="">Todos los equipos</option></select></div>
+    </div>
+    <div class="hist" id="a-hist"></div>
   </section>
 <div class="conn" id="conn" hidden>
   <form class="conn-card" id="conn-form" novalidate>
@@ -584,6 +700,15 @@ section.panel{scroll-margin-top:64px}
     };
   }
   var db = { collection:function(c){ return query(c); }, doc:function(p){ var s=p.split("/"); return docRef(s[0], s[1]); } };
+  /* varias escrituras en una sola petición: docs = {id: datos} */
+  db.writeMany = async function(c, op, docs){
+    var antes = JSON.stringify(store);
+    Object.keys(docs).forEach(function(id){ var d=JSON.parse(JSON.stringify(docs[id]));
+      if(op==="update"){ if(col(c)[id]) Object.assign(col(c)[id], d); } else col(c)[id]=d; });
+    cache(); notify();
+    try{ await api({action:"many", op:op, col:c, docs:docs}); setStatus("ok"); }
+    catch(err){ store = JSON.parse(antes); cache(); notify(); setStatus(err && err.code==="clave" ? "clave" : (err && /desconocida|accion/i.test(err.message||"")) ? "code" : "off"); throw {code:"unavailable", message:"sin conexión"}; }
+  };
 
   /* ---- pantalla de conexión y estado ---- */
   var resolveReady; var ready = new Promise(function(r){ resolveReady = r; });
@@ -3130,7 +3255,7 @@ var qrcode = function() {
   }
 
   /* ---------- PDF de la etiqueta (70 × 37 mm en A4, 3 × 8) ---------- */
-  const TIPO_ETQ = {"Profesor EDIXGAL":["PROFESOR · EDIXGAL",[90,86,112]],"Aula EDIXGAL":["AULA · EDIXGAL",[46,125,87]],"PT/AL":["PT / AL",[227,77,97]],"Otro":["CENTRO",[138,134,152]]};
+  const TIPO_ETQ = {"Profesor EDIXGAL":["PROFESOR · EDIXGAL",[90,86,112]],"Aula EDIXGAL":["AULA · EDIXGAL",[46,125,87]],"PT/AL":["PT / AL",[227,77,97]],"Otro":["CENTRO",[138,134,152]],"Alumnado":["ALUMNADO · EDIXGAL",[183,121,31]]};
   const pdfTxt = t => (t||"").toString().replace(/…/g,"...").replace(/[—–]/g,"-").replace(/[^\x20-\x7E\xA0-\xFF]/g,"");
   function nuevoPdf(){ if(!window.jspdf) throw new Error("nolib"); const { jsPDF } = window.jspdf; return new jsPDF({unit:"mm", format:"a4", orientation:"portrait"}); }
   async function guardarPdf(doc, nombre){
@@ -3542,13 +3667,14 @@ var qrcode = function() {
   }
   function idDeQr(txt){
     const t=(txt||"").trim(); const m=/#([A-Za-z0-9_-]+)$/.exec(t); const id=m?m[1]:t;
-    if(equipos.some(e=>e._id===id)) return id;
-    const e=equipos.find(e=>e.serie && norm(e.serie)===norm(t)); return e?e._id:"";
+    if(equipos.some(e=>e._id===id) || aluEq.some(e=>e._id===id)) return id;
+    const e=equipos.find(e=>e.serie && norm(e.serie)===norm(t)) || aluEq.find(e=>e.serie && norm(e.serie)===norm(t)); return e?e._id:"";
   }
   function leidoQr(txt){
     const now=Date.now(); if(txt===scanLast && now-scanLastT<3000) return; scanLast=txt; scanLastT=now;
     const id=idDeQr(txt);
     if(!id){ scanMsg("Este QR no corresponde a ningún dispositivo del inventario.","err"); return; }
+    if(aluEq.some(x=>x._id===id)){ try{ if(navigator.vibrate) navigator.vibrate(70); }catch(_){} cerrarScan(); aluAbrir(id, true); return; }
     const e=equipos.find(x=>x._id===id);
     try{ if(navigator.vibrate) navigator.vibrate(70); }catch(_){}
     const r=revActiva();
@@ -3704,18 +3830,271 @@ var qrcode = function() {
     const secs=btns.map(b=>{ const h=document.getElementById(b.dataset.go); return {b, s:h&&h.closest("section")}; }).filter(x=>x.s);
     let raf=0;
     const upd=()=>{ raf=0; const lim=window.innerHeight*0.35; let cur=secs[0];
-      secs.forEach(x=>{ if(x.s.getBoundingClientRect().top<=lim) cur=x; });
-      if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4) cur=secs[secs.length-1];
+      const vis=secs.filter(x=>x.s.offsetParent!==null); cur=vis[0]; vis.forEach(x=>{ if(x.s.getBoundingClientRect().top<=lim) cur=x; });
+      if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4 && vis.length) cur=vis[vis.length-1];
       btns.forEach(b=>b.classList.toggle("on", cur&&b===cur.b)); };
     window.addEventListener("scroll",()=>{ if(!raf) raf=requestAnimationFrame(upd); },{passive:true});
     window.addEventListener("resize",()=>{ if(!raf) raf=requestAnimationFrame(upd); });
+    window.__navUpd=()=>{ if(!raf) raf=requestAnimationFrame(upd); };
     setTimeout(upd,300);
   })();
+
+  /* ================= ALUMNADO ================= */
+  const A_UBIC=["5º A","5º B","6º A","6º B","Almacén"];
+  let aluEq=[], aluMovs=[], aluSaving=false, aluFicha=false, aluQr=false, aluEdId=null, aluLoaded=false;
+  let modo = lsg("ceip-tic-modo")==="alu" ? "alu" : "prof";
+  function setModo(m){
+    modo=m; lss("ceip-tic-modo",m);
+    document.body.classList.toggle("modo-alu", m==="alu");
+    document.querySelectorAll(".modo [data-modo]").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.modo===m)));
+    if(window.__navUpd) window.__navUpd();
+  }
+  setModo(modo);
+  document.querySelector(".modo").addEventListener("click",ev=>{ const b=ev.target.closest("[data-modo]"); if(b) setModo(b.dataset.modo); });
+  $("#a-fecha").value=today();
+  const aluLabel = e => e.serie + (mm(e)?" · "+mm(e):"");
+  const aluOrden = (a,b)=> (A_UBIC.indexOf(a.ubicacion)-A_UBIC.indexOf(b.ubicacion)) || (a.alumno||"~").localeCompare(b.alumno||"~","es") || (a.orden||0)-(b.orden||0);
+  function aluNombres(){ return sortEs([...new Set([...aluEq.map(e=>e.alumno), ...aluMovs.map(m=>m.alumno)].filter(Boolean))]); }
+
+  function aluRender(){ aluSummary(); aluSelects(); aluList(); aluCurrent(); aluHist(); }
+  function aluSummary(){
+    const n=aluEq.length;
+    const por=A_UBIC.map(u=>[u, aluEq.filter(e=>e.ubicacion===u).length]);
+    const sinAlu=aluEq.filter(e=>e.ubicacion!=="Almacén" && !e.alumno).length;
+    $("#a-summary").innerHTML = `<div class="stat"><b>${n}</b><span class="muted">equipos de alumnado</span></div>`+
+      por.map(([u,c])=>`<div class="stat"><b>${c}</b><span class="muted">${u==="Almacén"?"en el almacén":"en "+esc(u)}</span></div>`).join("")+
+      (sinAlu?`<div class="stat"><b>${sinAlu}</b><span class="muted">en aula sin alumno/a</span></div>`:"");
+  }
+  function aluSelects(){
+    const sel=$("#a-equipo"), cur=sel.value;
+    sel.innerHTML='<option value="">Elige un equipo…</option>'+A_UBIC.map(u=>{ const g=aluEq.filter(e=>e.ubicacion===u).sort(aluOrden); return g.length?`<optgroup label="${esc(u)}">${g.map(e=>`<option value="${esc(e._id)}">${esc(e.serie)}${e.alumno?" — "+esc(e.alumno):""}</option>`).join("")}</optgroup>`:""; }).join("")+
+      (aluEq.some(e=>!A_UBIC.includes(e.ubicacion))?`<optgroup label="Otros">${aluEq.filter(e=>!A_UBIC.includes(e.ubicacion)).map(e=>`<option value="${esc(e._id)}">${esc(e.serie)}</option>`).join("")}</optgroup>`:"");
+    if(aluEq.some(e=>e._id===cur)) sel.value=cur;
+    const fl=$("#a-fl"), fv=fl.value; fl.innerHTML='<option value="">Todas las ubicaciones</option>'+A_UBIC.map(u=>`<option${u===fv?" selected":""}>${esc(u)}</option>`).join("");
+    const hf=$("#a-hf"), hv=hf.value; hf.innerHTML='<option value="">Todos los equipos</option>'+[...aluEq].sort((a,b)=>(a.orden||0)-(b.orden||0)).map(e=>`<option value="${esc(e._id)}"${e._id===hv?" selected":""}>${esc(e.serie)}</option>`).join("");
+    $("#a-alumnos").innerHTML=aluNombres().map(n=>`<option value="${esc(n)}">`).join("");
+    if(!$("#a-aula").children.length) $("#a-aula").innerHTML=A_UBIC.map((u,i)=>`<label class="chip" data-v="${esc(u)}"><input type="radio" name="aaula" value="${esc(u)}"><span>${esc(u)}</span></label>`).join("");
+  }
+  function aluVisibles(){
+    const q=norm($("#a-q").value), fl=$("#a-fl").value;
+    return aluEq.filter(e=>(!fl||e.ubicacion===fl) && (!q || norm([e.serie,e.alumno,e.marca,e.modelo,e.ubicacion,e.observaciones].join(" ")).includes(q))).sort(aluOrden);
+  }
+  function aluList(){
+    const box=$("#a-list");
+    if(!aluLoaded){ return; }
+    if(!aluEq.length){ box.innerHTML='<div class="empty">Todavía no hay equipos de alumnado. Pulsa «Añadir equipos» y pega los números de serie.</div>'; return; }
+    const vis=aluVisibles(), selId=$("#a-equipo").value;
+    $("#a-etq-n").textContent=vis.length;
+    if(!vis.length){ box.innerHTML='<div class="empty">Ningún equipo coincide con la búsqueda.</div>'; return; }
+    let html='<div class="alist">', last=null;
+    vis.forEach(e=>{
+      if(e.ubicacion!==last){ last=e.ubicacion; html+=`<div class="agroup">${esc(last||"Sin ubicación")} · ${vis.filter(x=>x.ubicacion===last).length}</div>`; }
+      const inc=incAbiertas(e._id).length;
+      html+=`<button type="button" class="aitem${e._id===selId?" sel":""}" data-aid="${esc(e._id)}"><span class="serie">${esc(e.serie)}</span><span class="small muted">${fmt(e.fechaCambio)}</span>
+        <span class="who">${e.ubicacion==="Almacén"?'<span class="muted">En el almacén</span>':(e.alumno?esc(e.alumno):'<span class="muted">Sin alumno/a asignado</span>')}${mm(e)?` <span class="muted small">· ${esc(mm(e))}</span>`:""}${inc?' <span class="flag inc">Incidencia</span>':""}</span></button>`;
+    });
+    box.innerHTML=html+'</div>';
+  }
+  function aluEventos(e){
+    const ev=aluMovs.filter(m=>m.equipoId===e._id).map(m=>({f:m.fecha,o:m.creado||"",k:"Movimiento",c:"",t:`${esc(m.desde||"—")}${m.alumnoAntes?" ("+esc(m.alumnoAntes)+")":""} → ${esc(m.hacia)}${m.alumno?" ("+esc(m.alumno)+")":""}${m.nota?` · <span class="muted">${esc(m.nota)}</span>`:""}`}));
+    incidencias.filter(i=>i.equipoId===e._id).forEach(i=>{
+      ev.push({f:i.fecha,o:i.creado||"",k:"Incidencia",c:"inc",t:esc(i.descripcion)});
+      if(i.estado==="resuelta") ev.push({f:i.fechaResuelta,o:"",k:"Resuelta",c:"ok",t:esc(i.descripcion)+(i.solucion?" · "+esc(i.solucion):"")});
+    });
+    return ev.sort((a,b)=>(b.f||"").localeCompare(a.f||"")||(b.o||"").localeCompare(a.o||""));
+  }
+  function aluCurrent(){
+    const e=aluEq.find(x=>x._id===$("#a-equipo").value), box=$("#a-current");
+    document.querySelectorAll("#a-aula .chip").forEach(c=>c.classList.toggle("is-current", !!e && c.dataset.v===e.ubicacion));
+    if(!e){ box.hidden=true; return; }
+    box.hidden=false;
+    const ev=aluFicha?aluEventos(e):[];
+    box.innerHTML=`Ahora está en <strong>${esc(e.ubicacion||"—")}</strong>${e.alumno?` · lo tiene <strong>${esc(e.alumno)}</strong>`:""}`+
+      (mm(e)?`<br><span class="muted">${esc(mm(e))}${e.color?" · "+esc(e.color):""}</span>`:"")+
+      (e.observaciones?`<br><span class="muted">${esc(e.observaciones)}</span>`:"")+
+      `<div class="cur-actions"><button type="button" class="btn link small" id="a-b-edit">Editar datos</button><button type="button" class="btn link small" id="a-b-ficha">${aluFicha?"Ocultar historial":"Ver historial"}</button><button type="button" class="btn link small" id="a-b-inc">Abrir incidencia</button><button type="button" class="btn link small" id="a-b-qr">${aluQr?"Ocultar etiqueta QR":"Imprimir etiqueta QR"}</button></div>`+
+      (e.ubicacion!=="Almacén"?`<div class="quick"><button type="button" class="btn small${aluArmed===e._id?" armed":""}" id="a-b-alm"${aluSaving?" disabled":""}>${aluArmed===e._id?"Toca otra vez para confirmar":"Devolver al almacén"}</button></div>`:"")+
+      (aluFicha?`<div class="ficha"><div class="small" style="margin-bottom:4px"><strong>Historial de ${esc(e.serie)}</strong></div>${ev.length?ev.map(x=>`<div class="fitem"><div class="date">${fmt(x.f)}</div><div><span class="k ${x.c}">${x.k}</span>${x.t}</div></div>`).join(""):'<div class="small muted">Todavía no tiene cambios anotados.</div>'}</div>`:"")+
+      (aluQr?qrHtml(e).replace('id="qr-pos"','id="a-qr-pos"').replace('id="b-pdf"','id="a-b-pdf"').replace('id="qr-msg"','id="a-qr-msg"').replace('for="qr-pos"','for="a-qr-pos"'):"")+
+      incAbiertas(e._id).map(i=>`<div class="small" style="margin-top:6px"><span class="badge open">Incidencia</span> ${esc(i.descripcion)} <span class="muted">(${fmt(i.fecha)})</span></div>`).join("")+
+      (aluIncOpen===e._id?`<div class="incform"><label class="small" for="a-inc-desc"><strong>Nueva incidencia</strong> de ${esc(e.serie)}</label>
+        <textarea id="a-inc-desc" placeholder="¿Qué le pasa? Ej.: no carga, pantalla rota…"></textarea>
+        <div class="row"><button type="button" class="btn primary small" id="a-inc-save" style="position:static;box-shadow:none">Guardar incidencia</button><button type="button" class="btn small" id="a-inc-cancel">Cancelar</button></div></div>`:"");
+    aluAulaUi();
+  }
+  let aluArmed=null, aluArmT=null, aluIncOpen=null;
+  function aluAulaUi(){
+    const v=(document.querySelector('input[name="aaula"]:checked')||{}).value||"";
+    $("#a-alu-field").hidden = v==="Almacén";
+  }
+  function aluHist(){
+    const f=$("#a-hf").value;
+    const list=aluMovs.filter(m=>!f||m.equipoId===f).slice(0,150);
+    $("#a-hist").innerHTML = list.length ? list.map(m=>`<div class="hitem"><div class="date">${fmt(m.fecha)}</div><div><span class="serie">${esc(m.serie)}</span> · ${esc(m.desde||"—")}${m.alumnoAntes?" ("+esc(m.alumnoAntes)+")":""} → <strong>${esc(m.hacia)}</strong>${m.alumno?" ("+esc(m.alumno)+")":""}${m.nota?`<br><span class="small muted">${esc(m.nota)}</span>`:""}</div></div>`).join("")
+      : '<div class="empty">Aún no hay cambios en los equipos de alumnado.</div>';
+  }
+  function aluMsg(k,t){ $("#a-msg").innerHTML=t?`<div class="msg ${k}">${esc(t)}</div>`:""; }
+  function aluAbrir(id, scroll){
+    setModo("alu"); $("#a-equipo").value=id; aluFicha=false; aluQr=false; aluCurrent(); aluList();
+    const e=aluEq.find(x=>x._id===id); if(e) aluMsg("ok",`Equipo escaneado: ${e.serie}. Elige dónde va a estar y, si va a un aula, el alumno/a.`);
+    if(scroll) setTimeout(()=>$("#ha-form").closest("section").scrollIntoView({behavior:"smooth",block:"start"}),60);
+  }
+  async function aluMover(e, aula, alumno, nota, fecha){
+    alumno = aula==="Almacén" ? "" : (alumno||"");
+    await db.collection("movalumnado").add({equipoId:e._id, serie:e.serie, fecha:fecha||today(), desde:e.ubicacion||"", alumnoAntes:e.alumno||"", hacia:aula, alumno, nota:nota||"", creado:new Date().toISOString()});
+    await db.doc("alumnado/"+e._id).update({ubicacion:aula, alumno, fechaCambio:fecha||today()});
+  }
+  const aluErr = err => err&&err.code==="unavailable" ? "No se pudo guardar. Si es la primera vez que usas Alumnado, falta actualizar el código de la hoja (Code.gs). Si no, revisa la conexión." : errMov(err);
+
+  $("#a-equipo").addEventListener("change",()=>{ aluFicha=false; aluQr=false; aluMsg(); aluCurrent(); aluList(); });
+  $("#a-aula").addEventListener("change",aluAulaUi);
+  $("#a-q").addEventListener("input",aluList);
+  $("#a-fl").addEventListener("change",aluList);
+  $("#a-hf").addEventListener("change",aluHist);
+  $("#a-list").addEventListener("click",ev=>{ const b=ev.target.closest("[data-aid]"); if(!b) return; $("#a-equipo").value=b.dataset.aid; aluFicha=false; aluQr=false; aluMsg(); aluCurrent(); aluList();
+    if(window.matchMedia("(max-width:900px)").matches) $("#ha-form").closest("section").scrollIntoView({behavior:"smooth",block:"start"}); });
+  $("#a-current").addEventListener("click",async ev=>{
+    const e=aluEq.find(x=>x._id===$("#a-equipo").value); if(!e) return;
+    if(ev.target.closest("#a-b-ficha")){ aluFicha=!aluFicha; aluCurrent(); }
+    else if(ev.target.closest("#a-b-qr")){ aluQr=!aluQr; aluCurrent(); }
+    else if(ev.target.closest("#a-b-edit")){ aluEditar(e); }
+    else if(ev.target.closest("#a-b-inc")){ aluIncOpen=e._id; aluCurrent(); setTimeout(()=>{ const t=$("#a-inc-desc"); if(t) t.focus(); },30); }
+    else if(ev.target.closest("#a-inc-cancel")){ aluIncOpen=null; aluCurrent(); }
+    else if(ev.target.closest("#a-inc-save")){
+      const d=($("#a-inc-desc").value||"").trim(); if(!d){ $("#a-inc-desc").focus(); return; }
+      crearIncidencia(Object.assign({}, e, {clase:"Portátil (alumnado)"}), d).then(()=>{ aluIncOpen=null; aluCurrent(); aluMsg("ok",`Incidencia guardada para ${e.serie}. Aparece también en la lista de incidencias.`); })
+        .catch(()=>aluMsg("err","No se pudo guardar la incidencia. Revisa la conexión."));
+    }
+    else if(ev.target.closest("#a-b-pdf")){
+      const pos=parseInt($("#a-qr-pos").value,10)||1, msg=$("#a-qr-msg");
+      etiquetaPdf(Object.assign({}, e, {tipo:"Alumnado"}),pos).then(nombre=>{ msg.textContent=`PDF listo (${nombre}). Imprímelo a tamaño real (100 %).`; const sig=pos>=24?1:pos+1; lss("ceip-tic-pos",String(sig)); $("#a-qr-pos").value=String(sig); })
+        .catch(err=>{ msg.textContent = err&&err.message==="nolib" ? "No se pudo cargar el generador de PDF." : "No se pudo descargar el PDF."; });
+    }
+    else if(ev.target.closest("#a-b-alm")){
+      if(aluArmed!==e._id){ aluArmed=e._id; clearTimeout(aluArmT); aluArmT=setTimeout(()=>{ aluArmed=null; aluCurrent(); },4000); aluCurrent(); return; }
+      clearTimeout(aluArmT); aluArmed=null; if(!db) return;
+      aluSaving=true; aluCurrent();
+      try{ const desde=e.ubicacion; await aluMover(e,"Almacén","","Devuelto al almacén"); aluMsg("ok",`Guardado: ${e.serie} pasa de ${desde} al almacén.`); }
+      catch(err){ aluMsg("err",aluErr(err)); }
+      finally{ aluSaving=false; aluCurrent(); }
+    }
+  });
+  $("#a-form").addEventListener("submit",async ev=>{
+    ev.preventDefault(); if(aluSaving) return;
+    const e=aluEq.find(x=>x._id===$("#a-equipo").value);
+    const aula=(document.querySelector('input[name="aaula"]:checked')||{}).value||"";
+    const alumno=aula==="Almacén"?"":$("#a-alumno").value.trim().replace(/\s+/g," ");
+    const fecha=$("#a-fecha").value, nota=$("#a-nota").value.trim();
+    const falt=[]; if(!e) falt.push("el equipo"); if(!fecha) falt.push("la fecha"); if(!aula) falt.push("dónde va a estar");
+    if(falt.length){ aluMsg("err","Falta indicar "+falt.join(", ")+"."); return; }
+    if(aula===e.ubicacion && alumno===(e.alumno||"") && !nota){ aluMsg("err","No hay ningún cambio: el equipo ya está ahí y con ese alumno/a."); return; }
+    if(!db){ aluMsg("err","No hay conexión con el registro."); return; }
+    const otro = alumno && aluEq.find(x=>x._id!==e._id && x.alumno===alumno && x.ubicacion!=="Almacén");
+    aluSaving=true; $("#a-save").disabled=true; aluMsg();
+    try{
+      const desde=e.ubicacion;
+      await aluMover(e, aula, alumno, nota, fecha);
+      aluMsg("ok",`Guardado: ${e.serie} ${desde===aula?"sigue en "+aula:"pasa de "+(desde||"—")+" a "+aula}${alumno?" con "+alumno:""}${alumno.endsWith(".")?"":"."}${otro?` Ojo: ${alumno} ya tenía asignado el ${otro.serie}.`:""}`);
+      document.querySelectorAll('#a-aula input').forEach(i=>i.checked=false); $("#a-alumno").value=""; $("#a-nota").value=""; $("#a-equipo").value=""; aluCurrent(); aluList();
+    }catch(err){ aluMsg("err",aluErr(err)); }
+    finally{ aluSaving=false; $("#a-save").disabled=false; }
+  });
+
+  /* alta, edición y baja */
+  let aluDelArmed=false;
+  function aluEditar(e){
+    aluEdId=e?e._id:null; aluDelArmed=false;
+    $("#a-ed-h").textContent = e?"Editar equipo de alumnado":"Añadir equipos de alumnado";
+    $("#a-ed-add").hidden=!!e; $("#a-ed-one").hidden=!e; $("#a-ed-ubic-w").hidden=!!e; $("#a-ed-del").hidden=!e; $("#a-ed-del").textContent="Dar de baja";
+    $("#a-ed-ubic").innerHTML=A_UBIC.map(u=>`<option${u==="Almacén"?" selected":""}>${esc(u)}</option>`).join("");
+    $("#a-ed-series").value=""; $("#a-ed-serie").value=e?e.serie:""; $("#a-ed-marca").value=e?(e.marca||""):""; $("#a-ed-modelo").value=e?(e.modelo||""):"";
+    $("#a-ed-color").value=e?(e.color||""):""; $("#a-ed-obs").value=e?(e.observaciones||""):""; $("#a-ed-msg").innerHTML="";
+    $("#a-ed").hidden=false; document.body.style.overflow="hidden";
+    setTimeout(()=>(e?$("#a-ed-serie"):$("#a-ed-series")).focus(),50);
+  }
+  let aluLote=null;
+  function aluEditarLote(){
+    const vis=aluVisibles(); if(!vis.length){ aluMsg("err","No hay equipos en la lista."); return; }
+    aluEditar(null); aluLote=vis.map(e=>e._id);
+    $("#a-ed-h").textContent="Marca, modelo y color en lote";
+    $("#a-ed-add").hidden=true; $("#a-ed-ubic-w").hidden=true; $("#a-ed-obs").closest("div").hidden=true;
+    $("#a-ed-lote").hidden=false; $("#a-ed-lote").innerHTML=`Se aplicará a los <strong>${vis.length}</strong> equipos que se ven ahora en la lista${$("#a-fl").value?" ("+esc($("#a-fl").value)+")":""}${$("#a-q").value?" con la búsqueda «"+esc($("#a-q").value)+"»":""}. Lo que dejes en blanco no se cambia.`;
+    setTimeout(()=>$("#a-ed-marca").focus(),50);
+  }
+  $("#a-b-lote").addEventListener("click",aluEditarLote);
+  function aluEdCerrar(){ aluLote=null; $("#a-ed-lote").hidden=true; $("#a-ed-obs").closest("div").hidden=false; $("#a-ed").hidden=true; document.body.style.overflow=""; aluEdId=null; }
+  $("#a-b-add").addEventListener("click",()=>aluEditar(null));
+  $("#a-ed-x").addEventListener("click",aluEdCerrar);
+  $("#a-ed").addEventListener("click",ev=>{ if(ev.target.id==="a-ed") aluEdCerrar(); });
+  $("#a-ed-save").addEventListener("click",async ()=>{
+    const m=(k,t)=>{ $("#a-ed-msg").innerHTML=t?`<div class="msg ${k}">${esc(t)}</div>`:""; };
+    if(!db){ m("err","No hay conexión con el registro."); return; }
+    const comun={marca:$("#a-ed-marca").value.trim(), modelo:$("#a-ed-modelo").value.trim(), color:$("#a-ed-color").value, observaciones:$("#a-ed-obs").value.trim()};
+    $("#a-ed-save").disabled=true;
+    try{
+      if(aluLote){
+        const upd={}; ["marca","modelo","color"].forEach(k=>{ if(comun[k]) upd[k]=comun[k]; });
+        if(!Object.keys(upd).length){ m("err","Escribe al menos la marca, el modelo o el color."); return; }
+        if(db.writeMany){ m("","Guardando…"); const docs={}; aluLote.forEach(id=>docs[id]=upd); await db.writeMany("alumnado","update",docs); }
+        else { let i=0; for(const id of aluLote){ i++; m("",`Guardando ${i} de ${aluLote.length}…`); await db.doc("alumnado/"+id).update(upd); } }
+        const n=aluLote.length; aluEdCerrar(); aluMsg("ok",`Actualizados ${n} equipos.`); return;
+      }
+      if(aluEdId){
+        const serie=$("#a-ed-serie").value.trim(); if(!serie){ m("err","Falta el número de serie."); return; }
+        if(aluEq.some(x=>x._id!==aluEdId && norm(x.serie)===norm(serie))){ m("err","Ya hay otro equipo de alumnado con ese número de serie."); return; }
+        await db.doc("alumnado/"+aluEdId).update(Object.assign({serie},comun)); aluEdCerrar(); aluMsg("ok","Datos guardados."); return;
+      }
+      const series=[...new Set($("#a-ed-series").value.split(/[\n,;\t]+/).map(x=>x.trim()).filter(Boolean))];
+      if(!series.length){ m("err","Pega al menos un número de serie."); return; }
+      const rep=series.filter(sr=>aluEq.some(x=>norm(x.serie)===norm(sr)) || equipos.some(x=>norm(x.serie)===norm(sr)));
+      const nuevas=series.filter(sr=>!rep.includes(sr));
+      if(!nuevas.length){ m("err","Esos números de serie ya están en el inventario."); return; }
+      const ubic=$("#a-ed-ubic").value||"Almacén";
+      let n=aluEq.reduce((mx,x)=>Math.max(mx, parseInt((x._id||"").replace(/\D/g,""),10)||0, x.orden||0),0);
+      const docs={}; nuevas.forEach(sr=>{ n++; docs["a"+String(n).padStart(2,"0")]=Object.assign({orden:n, serie:sr, ubicacion:ubic, alumno:"", fechaCambio:today()},comun); });
+      if(db.writeMany){ m("","Guardando…"); await db.writeMany("alumnado","set",docs); }
+      else { let i=0; for(const id in docs){ i++; m("",`Guardando ${i} de ${nuevas.length}…`); await db.doc("alumnado/"+id).set(docs[id]); } }
+      aluEdCerrar(); aluMsg("ok",`Añadidos ${nuevas.length} equipos en ${ubic}.${rep.length?` No se añadieron ${rep.length} que ya estaban: ${rep.join(", ")}.`:""}`);
+    }catch(err){ m("err",aluErr(err)); }
+    finally{ $("#a-ed-save").disabled=false; }
+  });
+  $("#a-ed-del").addEventListener("click",async ()=>{
+    if(!aluEdId) return;
+    if(!aluDelArmed){ aluDelArmed=true; $("#a-ed-del").textContent="Toca otra vez para darlo de baja"; return; }
+    try{ await db.doc("alumnado/"+aluEdId).delete(); if($("#a-equipo").value===aluEdId) $("#a-equipo").value=""; aluEdCerrar(); aluMsg("ok","Equipo dado de baja. Su historial se conserva."); aluCurrent(); }
+    catch(err){ $("#a-ed-msg").innerHTML=`<div class="msg err">${esc(aluErr(err))}</div>`; }
+  });
+
+  /* etiquetas y listado */
+  $("#a-b-etq").addEventListener("click",()=>{
+    const bar=$("#a-etqbar"); bar.hidden=!bar.hidden; if(bar.hidden) return;
+    let pos=parseInt(lsg("ceip-tic-pos"),10)||1;
+    $("#a-etq-pos").innerHTML=Array.from({length:24},(_,i)=>`<option value="${i+1}"${i+1===pos?" selected":""}>Empezar en la posición ${i+1}</option>`).join("");
+    $("#a-etq-n").textContent=aluVisibles().length; $("#a-etq-msg").textContent="Imprime a tamaño real (100 %).";
+  });
+  $("#a-etq-x").addEventListener("click",()=>{ $("#a-etqbar").hidden=true; });
+  $("#a-etq-pdf").addEventListener("click",async ()=>{
+    const list=aluVisibles().sort((a,b)=>(a.orden||0)-(b.orden||0)).map(e=>Object.assign({},e,{tipo:"Alumnado"}));
+    if(!list.length){ $("#a-etq-msg").textContent="No hay equipos en la lista."; return; }
+    try{ const r=await etiquetasPdf(list, parseInt($("#a-etq-pos").value,10)||1); lss("ceip-tic-pos",String(r.siguiente)); $("#a-etq-msg").textContent=`PDF listo (${r.nombre}).`; }
+    catch(err){ $("#a-etq-msg").textContent = err&&err.message==="nolib" ? "No se pudo cargar el generador de PDF." : "No se pudo descargar el PDF."; }
+  });
+  $("#a-b-csv").addEventListener("click",async ()=>{
+    const rows=[["Nº de serie","Marca","Modelo","Color","Ubicación","Alumno/a","Último cambio","Observaciones"]];
+    [...aluEq].sort(aluOrden).forEach(e=>rows.push([e.serie,e.marca,e.modelo,e.color,e.ubicacion,e.alumno,fmt(e.fechaCambio),e.observaciones]));
+    const txt="﻿"+rows.map(r=>r.map(v=>{ v=(v==null?"":String(v)); return /[";\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }).join(";")).join("\r\n");
+    const nombre="equipos-alumnado-"+today()+".csv", blob=new Blob([txt],{type:"text/csv"});
+    const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
+    if(dl){ await dl.save({filename:nombre, data:blob}); return; }
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=nombre; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
+  });
+  document.addEventListener("keydown",ev=>{ if(ev.key==="Escape" && !$("#a-ed").hidden) aluEdCerrar(); });
 
   /* Abrir un portátil desde su QR (enlace terminado en #e07, por ejemplo) */
   let hashDone=false;
   function applyHash(){
     const id=(location.hash||"").slice(1);
+    if(aluEq.some(x=>x._id===id)){ hashDone=true; aluAbrir(id, true); try{ history.replaceState(null,"",location.pathname); }catch(_){} return; }
     const e=equipos.find(x=>x._id===id); if(!e) return;
     hashDone=true;
     if(revActiva() && revAula){
@@ -3865,7 +4244,15 @@ var qrcode = function() {
     },()=>{ $("#rev-body").innerHTML='<div class="empty">No se pudo leer las revistas.</div>'; });
     db.collection("incidencias").onSnapshot(s=>{
       incidencias=s.docs.map(d=>Object.assign({_id:d.id},d.data()));
-      renderInc(); renderTable(); renderCurrent(); renderRev();
+      renderInc(); renderTable(); renderCurrent(); renderRev(); aluList(); aluCurrent();
+    },()=>{});
+    db.collection("alumnado").orderBy("orden").onSnapshot(s=>{
+      aluEq=s.docs.map(d=>Object.assign({_id:d.id},d.data())); aluLoaded=true; aluRender();
+      if(!hashDone && aluEq.length) applyHash();
+    },()=>{ $("#a-list").innerHTML='<div class="empty">No se pudieron leer los equipos de alumnado.</div>'; });
+    db.collection("movalumnado").orderBy("creado","desc").limit(500).onSnapshot(s=>{
+      aluMovs=s.docs.map(d=>Object.assign({_id:d.id},d.data())).sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||"")||(b.creado||"").localeCompare(a.creado||""));
+      aluHist(); aluSelects(); if(aluFicha) aluCurrent();
     },()=>{});
     db.doc("config/listas").onSnapshot(s=>{
       const d=s.exists?s.data():null;
