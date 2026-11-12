@@ -3299,7 +3299,7 @@ var qrcode = function() {
     doc.setFillColor(...col); doc.rect(x,y,2,H,"F");
     // QR
     const q=window.qrcode(0,"M"); q.addData(APP_URL+"#"+e._id); q.make();
-    const n=q.getModuleCount(), size=33, m=size/n, qx=x+6, qy=y+(H-size)/2;
+    const n=q.getModuleCount(), size=32, m=size/n, qx=x+7.5, qy=y+(H-size)/2;
     doc.setFillColor(47,44,64);
     for(let r=0;r<n;r++) for(let c=0;c<n;c++) if(q.isDark(r,c)) doc.rect(qx+c*m, qy+r*m, m+0.01, m+0.01, "F");
     // Texto
